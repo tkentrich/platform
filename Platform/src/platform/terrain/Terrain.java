@@ -9,7 +9,7 @@ import platform.Dimension;
  * @author richkent
  */
 public abstract class Terrain {
-    private Dimension position; // BottomLeft corner
+    private Dimension position; // TopLeft corner
     public Dimension position() {
         return position;
     }
