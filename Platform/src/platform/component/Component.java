@@ -9,10 +9,15 @@ import platform.Platform;
  * @author richkent
  */
 public abstract class Component {
+    private int id;
+    private static int ID = 0;
     private Dimension position;
     private Dimension speed;
     private boolean standing;
     
+    public Component() {
+        id = ID++;
+    }
     public Dimension position() {
         return position;
     }
@@ -29,6 +34,7 @@ public abstract class Component {
     }
     public void standing(boolean standing) {
         this.standing = standing;
+        speed.setY(0);
     }
     public boolean standing() {
         return standing;

@@ -36,6 +36,12 @@ public class Dimension extends java.awt.Dimension {
         width = x;
         height = y;
     }
+    public void setX(int x) {
+        width = x;
+    }
+    public void setY(int y) {
+        height = y;
+    }
     public void add(int i) {
         add(i, i);
     }
