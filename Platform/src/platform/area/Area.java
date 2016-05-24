@@ -110,32 +110,14 @@ public class Area {
             for (Space s : ss) {
                 ArrayList<Component> c = s.components();
                 for (int c1 = 0; c1 < c.size(); c1++) {
-                    for (int c2 = c1 + 1; c2 < c.size(); c2++) {
-                        
+                    if (!(c.get(c1) instanceof Terrain)) {
+                        for (int c2 = c1 + 1; c2 < c.size(); c2++) {
+                            
+                        }
                     }
                 }
             }
         }
     }
     
-    private boolean collision (Component A, Component B) {
-        if (A.position().x() > B.position().plus(B.size()).x() // A to the right of B
-         || A.position().y() > B.position().plus(B.size()).y() // A below B
-         || A.position().plus(A.size()).x() < B.position().x() // A to the left of B
-         || A.position().plus(A.size()).y() < B.position().y() // A above B
-           ) {
-            return false;
-        }
-        return true;
-    }
-    private boolean collision (Component A, Terrain B) {
-        if (A.position().x() > B.position().plus(B.size()).x() // A to the right of B
-         || A.position().y() > B.position().plus(B.size()).y() // A below B
-         || A.position().plus(A.size()).x() < B.position().x() // A to the left of B
-         || A.position().plus(A.size()).y() < B.position().y() // A above B
-           ) {
-            return false;
-        }
-        return true;
-    }
 }
