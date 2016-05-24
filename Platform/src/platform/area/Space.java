@@ -2,7 +2,7 @@ package platform.area;
 
 import java.util.ArrayList;
 import platform.component.Component;
-import platform.terrain.Terrain;
+import platform.component.terrain.Terrain;
 
 /**
  *
