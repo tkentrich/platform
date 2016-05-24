@@ -1,4 +1,4 @@
-package platform.terrain;
+package platform.component.terrain;
 
 /**
  *

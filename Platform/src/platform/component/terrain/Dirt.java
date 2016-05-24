@@ -1,4 +1,4 @@
-package platform.terrain;
+package platform.component.terrain;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -55,6 +55,11 @@ public class Dirt extends Terrain {
         }
     }
     
+    @Override
+    public boolean visible() {
+        return true;
+    }
+
     @Override
     public Dimension size() {
         return Platform.blockSize;
