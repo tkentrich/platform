@@ -3,6 +3,7 @@ package platform.area;
 import java.util.ArrayList;
 import platform.Dimension;
 import platform.Platform;
+import platform.component.Collision;
 import platform.component.Component;
 import platform.component.terrain.Terrain;
 
@@ -12,18 +13,27 @@ import platform.component.terrain.Terrain;
  */
 public class Area {
     private Dimension size;
-    private ArrayList<Terrain> terrain;
+    // private ArrayList<Terrain> terrain;
     private ArrayList<Component> components;
     private Space[][] space;
     private Dimension spaces;
+    
+    public Area(Dimension size) {
+        this.size = size;
+        components = new ArrayList();
+    }
+    
+    public void addComponent(Component c) {
+        components.add(c);
+    }
     
     public void initialize() throws AreaException {
         if (size == null) {
             throw new AreaNotBuiltException("Unknown Size");
         }
-        if (terrain == null) {
-            throw new AreaNotBuiltException("No Terrain");
-        }
+        // if (terrain == null) {
+        //    throw new AreaNotBuiltException("No Terrain");
+        //}
         if (components == null) {
             throw new AreaNotBuiltException("No Components");
         }
@@ -32,7 +42,7 @@ public class Area {
         
         space = new Space[spaces.x()][spaces.y()];
         // Add terain to spaces
-        for (Terrain t : terrain) {
+        /* for (Terrain t : terrain) {
             Dimension start = t.position().dividedBy(Platform.spaceSize);
             Dimension end = t.position().plus(t.size()).dividedBy(Platform.spaceSize);
             for (int y = start.y(); y <= end.y(); y++) {
@@ -44,14 +54,19 @@ public class Area {
                     }
                 }
             }
-        }
+        } */
         // Add components to spaces, including one block size away
-        addComponents();
+        for (int x = 0; x < spaces.x(); x++) {
+            for (int y = 0; y < spaces.y(); y++) {
+                space[x][y] = new Space();
+            }
+        }
+        spaceComponents();
         
         findStanding();
     }
     
-    public void addComponents() {
+    public void spaceComponents() {
         for (Space[] ss : space) {
             for (Space s : ss) {
                 s.clearComponents();
@@ -64,7 +79,11 @@ public class Area {
                 if (c.position().plus(c.size()).minus(start.times(Platform.spaceSize)).y() > 0) {
                     for (int x = 0; x <= end.x() && x < spaces.x(); x++) {
                         if (c.position().plus(c.size()).minus(start.times(Platform.spaceSize)).x() > 0) {
-                            space[start.x() + x][start.y() + y].add(c);
+                            if (start.x() + x >= 0 && start.y() + y >= 0 &&
+                                start.x() + x < spaces.x() && start.y() + y < spaces.y()
+                               ) {
+                                space[start.x() + x][start.y() + y].add(c);
+                            }
                         }
                     }
                 }
@@ -77,7 +96,7 @@ public class Area {
             c.standing(false);
         }
         for (Space[] ss : space) {
-            for (int y = spaces.y() - 0; y >= 0; y--) {
+            for (int y = spaces.y() - 1; y >= 0; y--) {
                 Space s = ss[y];
                 for (Component c : s.components()) {
                     if (c.speed().y() >= 0) { // Skip if component is rising
@@ -106,13 +125,23 @@ public class Area {
         for (Component c : components) {
             c.position().add(c.speed().times(ms).dividedBy(1000));
         }
+        ArrayList<String> checked = new ArrayList();
+        ArrayList<Collision> collisions = new ArrayList();
         for (Space[] ss : space) {
             for (Space s : ss) {
                 ArrayList<Component> c = s.components();
                 for (int c1 = 0; c1 < c.size(); c1++) {
                     if (!(c.get(c1) instanceof Terrain)) {
                         for (int c2 = c1 + 1; c2 < c.size(); c2++) {
-                            
+                            if (c.get(c1).speed().isZero() 
+                               && !(checked.contains(c.get(c1).id() + ":" + c.get(c2).id())
+                               || checked.contains(c.get(c2).id() + ":" + c.get(c1).id()))) {
+                                Collision coll = Collision.test(c.get(c1), c.get(c2));
+                                if (coll != null) {
+                                    collisions.add(coll);
+                                    System.out.println("Collision: " + coll.description());
+                                }
+                            }
                         }
                     }
                 }

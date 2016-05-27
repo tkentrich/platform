@@ -6,13 +6,6 @@ package platform;
  */
 public class Dimension extends java.awt.Dimension {
 
-    public int x() {
-        return width;
-    }
-    public int y() {
-        return height;
-    }
-    
     public Dimension(int i) {
         this(i, i);
     }
@@ -25,6 +18,17 @@ public class Dimension extends java.awt.Dimension {
     public Dimension(Dimension src) {
         src.copy();
     }
+    
+    public int x() {
+        return width;
+    }
+    public int y() {
+        return height;
+    }
+    public boolean isZero() {
+        return x() == 0 && y() == 0;
+    }
+    
     public Dimension copy() {
         return new Dimension(x(), y());
     }
@@ -108,10 +112,10 @@ public class Dimension extends java.awt.Dimension {
         return dividedBy(i, i);
     }
     public Dimension dividedBy(int x, int y) {
-        return new Dimension(x() / x, y() / y);
+        return new Dimension(x() / (x == 0 ? 1 : x), y() / (y == 0 ? 1 : y));
     }
     public Dimension dividedBy(Dimension divisor) {
-        return new Dimension(x() / divisor.x(), y() / divisor.y());
+        return dividedBy(divisor.x(), divisor.y());
     }
     
     @Override

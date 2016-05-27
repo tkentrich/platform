@@ -15,8 +15,14 @@ public abstract class Component {
     private Dimension speed;
     private boolean standing;
     
-    public Component() {
+    public Component(Dimension position) {
         id = ID++;
+        this.position = position.copy();
+        speed = new Dimension(0);
+        standing = false;
+    }
+    public int id() {
+        return id;
     }
     public Dimension position() {
         return position;
@@ -44,4 +50,5 @@ public abstract class Component {
     public abstract Dimension size();
     public abstract BufferedImage image();
     public abstract int weight();
+    public abstract void collide(Component c);
 }

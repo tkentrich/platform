@@ -20,7 +20,8 @@ public class Dirt extends Terrain {
     private DirtType dt;
     public static HashMap<DirtType, BufferedImage> images;
     
-    public Dirt() {
+    public Dirt(Dimension position) {
+        super(position);
         int rnd = (int)(Math.random() * 3);
         switch (rnd) {
             default:
@@ -37,7 +38,8 @@ public class Dirt extends Terrain {
         initImages();
     }
     
-    public Dirt(DirtType dt) {    
+    public Dirt(Dimension position, DirtType dt) {    
+        super(position);
         this.dt = dt;
         initImages();
     }

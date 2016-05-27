@@ -21,10 +21,12 @@ public class Coin extends Collectible {
     
     private Dimension speed;
     
-    public Coin() {
+    public Coin(Dimension position) {
+        super(position);
         init();
     }
-    public Coin(Dimension speed) {
+    public Coin(Dimension position, Dimension speed) {
+        super(position);
         this.speed = speed.copy();
     }
     
@@ -78,8 +80,7 @@ public class Coin extends Collectible {
     }
 
     @Override
-    public Dimension speed() {
-        return speed.copy();
+    public void collide(Component c) {
     }
     
 }
