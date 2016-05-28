@@ -18,7 +18,7 @@ public abstract class Component {
     public Component(Dimension position) {
         id = ID++;
         this.position = position.copy();
-        speed = new Dimension(0);
+        this.speed = new Dimension(0);
         standing = false;
     }
     public int id() {
