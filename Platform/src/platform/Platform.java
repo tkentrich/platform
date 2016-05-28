@@ -4,7 +4,7 @@ import java.util.Observable;
 import java.util.Observer;
 import platform.area.Area;
 import platform.area.AreaException;
-import platform.component.Coin;
+import platform.collectible.Coin;
 import platform.component.terrain.Dirt;
 
 /**
