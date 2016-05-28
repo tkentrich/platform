@@ -1,4 +1,4 @@
-package platform.component;
+package platform.collectible;
 
 public class ScoreChange extends CollectResult {
     private int increase;

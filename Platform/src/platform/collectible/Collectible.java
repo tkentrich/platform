@@ -1,7 +1,8 @@
-package platform.component;
+package platform.collectible;
 
 import java.util.ArrayList;
 import platform.Dimension;
+import platform.component.Component;
 
 /**
  *

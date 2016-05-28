@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package platform.component;
+package platform.collectible;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
 import platform.Dimension;
+import platform.component.Component;
 
 
 public class Coin extends Collectible {
