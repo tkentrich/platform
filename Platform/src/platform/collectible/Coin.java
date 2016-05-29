@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
+import platform.Platform;
 import platform.Dimension;
 import platform.component.Component;
 
@@ -29,6 +30,8 @@ public class Coin extends Collectible {
     public Coin(Dimension position, Dimension speed) {
         super(position);
         this.speed = speed.copy();
+        System.out.println("Coin speed: " + speed);
+        init();
     }
     
     public void init() {
@@ -82,6 +85,11 @@ public class Coin extends Collectible {
 
     @Override
     public void collide(Component c) {
+    }
+    
+    @Override
+    public int maxFallSpeed() {
+        return Platform.blockSize.y() * 6;
     }
     
 }

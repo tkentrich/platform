@@ -28,14 +28,18 @@ public abstract class Component {
         return position;
     }
     public Dimension speed() {
-        return new Dimension(speed);
+        // return new Dimension(speed);
+        return speed;
     }
     public void push(Dimension force) {
         speed.add(force.dividedBy(weight()));
     }
-    public void gravity() {
-        if (weight() > 0 && !standing) {
-            speed.add(0, Platform.GRAVITY);
+    public void gravity(int ms) {
+        if (maxFallSpeed() > 0 && !standing) {
+            push(new Dimension(0, Platform.GRAVITY * 1000 / ms * weight()));
+        }
+        if (speed.y() > maxFallSpeed()) {
+            push(new Dimension(0, (-speed.y() + maxFallSpeed())));
         }
     }
     public void standing(boolean standing) {
@@ -45,6 +49,7 @@ public abstract class Component {
     public boolean standing() {
         return standing;
     }
+    public abstract int maxFallSpeed();
     public abstract boolean visible();
     public abstract boolean passable();
     public abstract Dimension size();

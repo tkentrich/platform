@@ -5,6 +5,7 @@ import java.util.Observer;
 import platform.area.Area;
 import platform.area.AreaException;
 import platform.collectible.Coin;
+import platform.component.Component;
 import platform.component.terrain.Dirt;
 
 /**
@@ -12,7 +13,7 @@ import platform.component.terrain.Dirt;
  * @author richkent
  */
 public class Platform implements Observer {
-    public static final int GRAVITY = 5;
+    public static final int GRAVITY = 48;
     public static Dimension blockSize = new Dimension(48, 48);
     public static Dimension spaceSize = new Dimension(200, 200);
 
@@ -20,27 +21,35 @@ public class Platform implements Observer {
         new Platform();
         
         Area a = new Area(blockSize.times(10));
+        Dirt d;
         for (int i = 0; i < 10; i++) {
-            Dirt d = new Dirt(blockSize.times(0, i));
-            a.addComponent(d);
+            d = new Dirt(blockSize.times(0, i));
+            // a.addComponent(d);
             d = new Dirt(blockSize.times(9, i));
-            a.addComponent(d);
+            // a.addComponent(d);
             d = new Dirt(blockSize.times(i, 0));
-            a.addComponent(d);
+            // a.addComponent(d);
             d = new Dirt(blockSize.times(i, 9));
             a.addComponent(d);
         }
         
-        Coin c = new Coin(blockSize.times(5, 2));
-        a.addComponent(c);
+        Coin c1 = new Coin(blockSize.times(5, 2));
+        a.addComponent(c1);
+        Coin c2 = new Coin(blockSize.times(8, 4));
+        a.addComponent(c2);
         
         a.initialize();
         
-        int msperframe = 100;
-        for (int frame = 0; frame < 10; frame++) {
+        int msperframe = 1000/30;
+        for (int frame = 0; frame < 30; frame++) {
             System.out.println("Frame " + frame);
             a.moveAll(msperframe);
-            System.out.println("  Coin position: " + c.position());
+            System.out.println("  Coin 1 position: " + c1.position() + " speed: " + c1.speed());
+            System.out.println("  Coin 2 position: " + c2.position() + " speed: " + c2.speed());
+        }
+        
+        for (Component comp : a.components()) {
+            System.out.println(comp.getClass().getSimpleName() + " " + comp.id() + " " + comp.position());
         }
     }
 

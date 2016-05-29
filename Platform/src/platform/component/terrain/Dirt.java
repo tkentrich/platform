@@ -82,4 +82,9 @@ public class Dirt extends Terrain {
         return null;
     }
     
+    @Override
+    public int maxFallSpeed() {
+        return 0;
+    }
+    
 }
