@@ -1,8 +1,10 @@
 package platform.component;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import platform.Dimension;
 import platform.Platform;
+import platform.component.Collision.CollisionType;
 
 /**
  *
@@ -55,5 +57,6 @@ public abstract class Component {
     public abstract Dimension size();
     public abstract BufferedImage image();
     public abstract int weight();
-    public abstract void collide(Component c);
+    // public abstract void collide(Component c);
+    public abstract ArrayList<CollisionResult> collide(Component c, CollisionType type);
 }

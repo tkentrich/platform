@@ -1,9 +1,10 @@
 package platform.collectible;
 
+import platform.component.CollisionResult;
 /**
  *
  * @author richkent
  */
-public abstract class CollectResult {
+public abstract class CollectResult extends CollisionResult {
     
 }

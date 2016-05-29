@@ -31,7 +31,9 @@ public class Collision {
     public static Collision test (Component a, Component b) {
         CollisionType coll;
         
-        System.out.println("Collision test between " + a + " and " + b);
+        if (a.equals(b)) {
+            return null;
+        }
         
         if (a.position().x() > b.position().plus(b.size()).x() // A to the right of B
          || a.position().y() > b.position().plus(b.size()).y() // A below B

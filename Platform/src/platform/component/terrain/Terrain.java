@@ -2,6 +2,8 @@ package platform.component.terrain;
 
 import java.util.ArrayList;
 import platform.Dimension;
+import platform.component.Collision.CollisionType;
+import platform.component.CollisionResult;
 import platform.component.Component;
 
 /**
@@ -19,8 +21,8 @@ public abstract class Terrain extends Component {
     public int weight() {
         return 0;
     }
-    public void collide(Component c) {
-        
+    public ArrayList<CollisionResult> collide(Component c, CollisionType type) { 
+        return null;
     }
     public abstract ArrayList<WalkModifier> walkModifiers();
 }

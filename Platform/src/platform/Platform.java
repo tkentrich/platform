@@ -42,14 +42,21 @@ public class Platform implements Observer {
         
         int msperframe = 1000/30;
         for (int frame = 0; frame < 30; frame++) {
-            System.out.println("Frame " + frame);
+            //if (frame == 24) {
+            //    a.debug(true);
+            //} else {
+                a.debug(false);
+            //}
+                
+            // System.out.println("Frame " + frame);
             a.moveAll(msperframe);
-            System.out.println("  Coin 1 position: " + c1.position() + " speed: " + c1.speed());
-            System.out.println("  Coin 2 position: " + c2.position() + " speed: " + c2.speed());
+            
+            // System.out.println("  Coin 1 position: " + c1.position() + " speed: " + c1.speed());
+            // System.out.println("  Coin 2 position: " + c2.position() + " speed: " + c2.speed());
         }
         
         for (Component comp : a.components()) {
-            System.out.println(comp.getClass().getSimpleName() + " " + comp.id() + " " + comp.position());
+            // System.out.println(comp.getClass().getSimpleName() + " " + comp.id() + " " + comp.position());
         }
     }
 

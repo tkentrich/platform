@@ -2,6 +2,8 @@ package platform.collectible;
 
 import java.util.ArrayList;
 import platform.Dimension;
+import platform.component.Collision;
+import platform.component.CollisionResult;
 import platform.component.Component;
 
 /**
@@ -14,4 +16,8 @@ public abstract class Collectible extends Component {
         super(position);
     }
     public abstract ArrayList<CollectResult> collect();
+    @Override
+    public ArrayList<CollisionResult> collide(Component c, Collision.CollisionType type) {
+        return null;
+    }
 }

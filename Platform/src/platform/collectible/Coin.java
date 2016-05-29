@@ -12,8 +12,6 @@ import java.util.HashMap;
 import javax.imageio.ImageIO;
 import platform.Platform;
 import platform.Dimension;
-import platform.component.Component;
-
 
 public class Coin extends Collectible {
 
@@ -81,10 +79,6 @@ public class Coin extends Collectible {
     @Override
     public int weight() {
         return 1;
-    }
-
-    @Override
-    public void collide(Component c) {
     }
     
     @Override
