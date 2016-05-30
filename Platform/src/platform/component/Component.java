@@ -38,18 +38,26 @@ public abstract class Component {
     }
     public void gravity(int ms) {
         if (maxFallSpeed() > 0 && !standing) {
-            push(new Dimension(0, Platform.GRAVITY * 1000 / ms * weight()));
+            push(new Dimension(0, Platform.GRAVITY * ms * weight() / 1000));
         }
         if (speed.y() > maxFallSpeed()) {
-            push(new Dimension(0, (-speed.y() + maxFallSpeed())));
+            push(new Dimension(0, (-speed.y() + maxFallSpeed()) * weight()));
         }
     }
     public void standing(boolean standing) {
         this.standing = standing;
-        speed.setY(0);
+        if (standing) {
+            speed.setY(0);
+        }
     }
     public boolean standing() {
         return standing;
+    }
+    public String info() {
+        return String.format("%s Pos:%s Size:%s Speed:%s", toString(), position(), size(), speed());
+    }
+    public String toString() {
+        return getClass().getSimpleName() + id;
     }
     public abstract int maxFallSpeed();
     public abstract boolean visible();

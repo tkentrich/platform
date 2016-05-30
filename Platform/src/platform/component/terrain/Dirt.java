@@ -35,13 +35,11 @@ public class Dirt extends Terrain {
                 dt = DirtType.C;
                 break;
         }
-        initImages();
     }
     
     public Dirt(Dimension position, DirtType dt) {    
         super(position);
         this.dt = dt;
-        initImages();
     }
     
     public static void initImages() {
@@ -69,6 +67,9 @@ public class Dirt extends Terrain {
     
     @Override
     public BufferedImage image() {
+        if (images == null) {
+            initImages();
+        }
         return images.get(dt);
     }
 

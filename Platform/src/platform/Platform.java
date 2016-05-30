@@ -2,10 +2,14 @@ package platform;
 
 import java.util.Observable;
 import java.util.Observer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static platform.Platform.blockSize;
 import platform.area.Area;
 import platform.area.AreaException;
 import platform.collectible.Coin;
 import platform.component.Component;
+import platform.component.Player;
 import platform.component.terrain.Dirt;
 
 /**
@@ -13,55 +17,80 @@ import platform.component.terrain.Dirt;
  * @author richkent
  */
 public class Platform implements Observer {
-    public static final int GRAVITY = 48;
     public static Dimension blockSize = new Dimension(48, 48);
     public static Dimension spaceSize = new Dimension(200, 200);
+    public static final int GRAVITY = blockSize.y() * 10;
+    
+    private CanvasViewer v;
+    private Area currentArea;
 
     public static void main(String[] args) throws AreaException {
         new Platform();
+    }
+
+    public Platform() {
+        Window w = new Window();
+        v = new CanvasViewer();
+        w.add(v);
         
-        Area a = new Area(blockSize.times(10));
+        currentArea = new Area(blockSize.times(10));
+        currentArea.addObserver(this);
         Dirt d;
         for (int i = 0; i < 10; i++) {
             d = new Dirt(blockSize.times(0, i));
-            // a.addComponent(d);
+            currentArea.addComponent(d);
             d = new Dirt(blockSize.times(9, i));
-            // a.addComponent(d);
+            currentArea.addComponent(d);
             d = new Dirt(blockSize.times(i, 0));
-            // a.addComponent(d);
+            currentArea.addComponent(d);
             d = new Dirt(blockSize.times(i, 9));
-            a.addComponent(d);
+            currentArea.addComponent(d);
         }
         
         Coin c1 = new Coin(blockSize.times(5, 2));
-        a.addComponent(c1);
+        currentArea.addComponent(c1);
         Coin c2 = new Coin(blockSize.times(8, 4));
-        a.addComponent(c2);
+        currentArea.addComponent(c2);
         
-        a.initialize();
+        Player p = new Player(blockSize.times(6, 1));
+        p.push(blockSize.times(100, -500));
         
-        int msperframe = 1000/30;
-        for (int frame = 0; frame < 30; frame++) {
-            //if (frame == 24) {
-            //    a.debug(true);
-            //} else {
-                a.debug(false);
-            //}
-                
-            // System.out.println("Frame " + frame);
-            a.moveAll(msperframe);
-            
-            // System.out.println("  Coin 1 position: " + c1.position() + " speed: " + c1.speed());
-            // System.out.println("  Coin 2 position: " + c2.position() + " speed: " + c2.speed());
+        currentArea.addComponent(p);
+        
+        try {
+            currentArea.initialize();
+        } catch (AreaException ex) {
+            Logger.getLogger(Platform.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        for (Component comp : a.components()) {
-            // System.out.println(comp.getClass().getSimpleName() + " " + comp.id() + " " + comp.position());
+        int msperframe = 1000/30;
+        for (int frame = 0; frame < 60; frame++) {
+            long startTime = System.currentTimeMillis();
+            System.out.println("1 " + p.info());
+                
+            currentArea.moveAll(msperframe);
+            System.out.println("2 " + p.info());
+
+            // System.out.printf("  Frame %d took %dms to process%n", frame, System.currentTimeMillis() - startTime);
+            long timeToSleep = 100 - (System.currentTimeMillis() - startTime);
+            if (timeToSleep > 0) {
+                try {
+                
+                    Thread.sleep(timeToSleep);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Platform.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            /* System.out.println("  Coin 1 position: " + c1.position() + " speed: " + c1.speed());
+            System.out.println("  Coin 2 position: " + c2.position() + " speed: " + c2.speed());
+            System.out.println("  Player position: " + p.position() + " speed: " + p.speed()); */
+            System.out.println(p.info());
         }
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        
+        v.paintArea(currentArea);
     }
+        
 }

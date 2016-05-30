@@ -83,7 +83,7 @@ public class Coin extends Collectible {
     
     @Override
     public int maxFallSpeed() {
-        return Platform.blockSize.y() * 6;
+        return Platform.blockSize.y() * 8;
     }
     
 }

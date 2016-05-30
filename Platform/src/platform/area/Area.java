@@ -2,26 +2,30 @@ package platform.area;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Observable;
 import platform.Dimension;
 import platform.Platform;
 import platform.component.Collision;
 import platform.component.Component;
+import platform.component.Player;
 import platform.component.terrain.Terrain;
 
 /**
  *
  * @author richkent
  */
-public class Area {
+public class Area extends Observable {
     private Dimension size;
     private ArrayList<Component> components;
     private HashMap<String, Space> space;
+    private Player player;
+    private boolean initialized;
     private boolean debug;
     
     public Area(Dimension size) {
         this.size = size;
         components = new ArrayList();
-        debug = true;
+        initialized = false;
     }
     
     public void debug() {
@@ -36,8 +40,17 @@ public class Area {
     }
     public void addComponent(Component c) {
         components.add(c);
+        if (c instanceof Player) {
+            player = (Player)c;
+        }
+    }
+    public Player player() {
+        return player;
     }
     
+    public boolean initialized() {
+        return initialized;
+    }
     public void initialize() throws AreaException {
         if (size == null) {
             throw new AreaNotBuiltException("Unknown Size");
@@ -45,10 +58,13 @@ public class Area {
         if (components == null) {
             throw new AreaNotBuiltException("No Components");
         }
+        if (player == null) {
+            throw new AreaNotBuiltException("No Player");
+        }
         
         space = new HashMap();
         
-        findStanding();
+        initialized = true;
     }
     
     public void spaceComponents() {
@@ -62,7 +78,7 @@ public class Area {
                 if (c.position().plus(c.size()).minus(start.times(Platform.spaceSize)).y() > 0) {
                     for (int x = 0; x <= end.x(); x++) {
                         if (c.position().plus(c.size()).minus(start.times(Platform.spaceSize)).x() > 0) {
-                            addToSpace(start.x() + x, start.y() + y, c);
+                            addToSpace(x, y, c);
                         }
                     }
                 }
@@ -70,8 +86,17 @@ public class Area {
         }
     }
     
+    public Space space(Dimension dim) {
+        if (space.containsKey(dim.toString())) {
+            return space.get(dim.toString());
+        }
+        return null;
+    }
+    public Space space(int x, int y) {
+        return space(new Dimension(x, y));
+    }
     public void addToSpace(int x, int y, Component c) {
-        String key = String.format("%d:%d", x, y);
+        String key = new Dimension(x, y).toString();
         if (!space.containsKey(key)) {
             space.put(key, new Space());
         }
@@ -84,20 +109,24 @@ public class Area {
         }
         for (Space s : space.values()) {
             for (Component c : s.components()) {
-                if (c.speed().y() <= 0) { // Skip if component is rising
+                if (!(c.speed().y() < 0 || c instanceof Terrain)) { // Skip if component is rising or Terrain
                     for (Component c2 : s.components()) {
                         if (!c.standing() && Math.abs(c.position().plus(c.size()).y() - c2.position().y()) < 2) {
+                            // System.out.println(c + " is standing");
                             c.standing(true);
                             c.position().setY(c2.position().minus(c.size()).y());
                             c.speed().setY(0);
                         }
                     }
+                } else {
+                    // System.out.println(c + " is rising, not checking standing");
                 }
             }
         }
     }
     
     public void moveAll(int ms) {
+        findStanding();
         for (Component c : components) {
             c.gravity(ms);
         }
@@ -146,7 +175,7 @@ public class Area {
             }
         }
         for (Collision coll : collisions) {
-            System.out.println("Collision!");
+            System.out.printf("Collision between %s and %s!%n", coll.comp1(), coll.comp2());
             if (!coll.comp2().passable()) {
                 switch (coll.type()) {
                     case NORTH:
@@ -167,6 +196,8 @@ public class Area {
             coll.comp1().collide(coll.comp2(), coll.type());
             coll.comp2().collide(coll.comp1(), coll.type());
         }
+        setChanged();
+        notifyObservers();
     }
     
 }

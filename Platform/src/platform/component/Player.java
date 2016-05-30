@@ -1,7 +1,10 @@
 package platform.component;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import javax.imageio.ImageIO;
 import platform.Dimension;
 import platform.Platform;
 
@@ -11,9 +14,17 @@ import platform.Platform;
  */
 public class Player extends Component {
 
+    private String status;
+    
+    private static HashMap<String, BufferedImage> images;
+    
+    public Player(Dimension position) {
+        super(position);
+    }
+
     @Override
     public int maxFallSpeed() {
-        return 96;
+        return Platform.blockSize.y() * 10;
     }
 
     @Override
@@ -28,12 +39,15 @@ public class Player extends Component {
 
     @Override
     public Dimension size() {
-        return new Dimension(Platform.blockSize.times(3).dividedBy(3,2));
+        return Platform.blockSize.times(3).dividedBy(3,2);
     }
 
     @Override
     public BufferedImage image() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (images == null) {
+            initImages();
+        }
+        return images.get("Default");
     }
 
     @Override
@@ -46,4 +60,14 @@ public class Player extends Component {
         return null;
     }
     
+    public static void initImages() {
+        if (images == null) {
+            images = new HashMap();
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            try {
+                images.put("Default", ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Component/Player/Default.png")));
+            } catch (IOException ex) {
+            }
+        }
+    }
 }
