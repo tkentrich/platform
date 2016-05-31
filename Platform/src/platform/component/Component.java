@@ -16,12 +16,16 @@ public abstract class Component {
     private Dimension position;
     private Dimension speed;
     private boolean standing;
+    private int actingFriction;
+    private int frictionComponents;
     
     public Component(Dimension position) {
         id = ID++;
         this.position = position.copy();
         this.speed = new Dimension(0);
         standing = false;
+        frictionComponents = 0;
+        actingFriction = 0;
     }
     public int id() {
         return id;
@@ -44,10 +48,34 @@ public abstract class Component {
             push(new Dimension(0, (-speed.y() + maxFallSpeed()) * weight()));
         }
     }
+    public void move(int ms) {
+        position().add(speed().times(ms).dividedBy(1000));
+        if (actingFriction == 0) {
+            return;
+        }
+        int speedReduction;
+        if (speed().x() > 0) {
+            speedReduction = -actingFriction * ms / 1000;
+        } else {
+            speedReduction = actingFriction * ms / 1000;
+        }
+        if (Math.abs(speedReduction) > Math.abs(speed().x())) {
+            speedReduction = -speed().x();
+        }
+        speed().add(speedReduction, 0);
+    }
+    public void standing(int actingFriction) {
+        standing(true);
+        this.actingFriction *= frictionComponents++;
+        this.actingFriction = (actingFriction + this.actingFriction) / frictionComponents;
+    }
     public void standing(boolean standing) {
         this.standing = standing;
         if (standing) {
             speed.setY(0);
+        } else {
+            actingFriction = 0;
+            frictionComponents = 0;
         }
     }
     public boolean standing() {
@@ -65,6 +93,7 @@ public abstract class Component {
     public abstract Dimension size();
     public abstract BufferedImage image();
     public abstract int weight();
+    public abstract int friction();
     // public abstract void collide(Component c);
     public abstract ArrayList<CollisionResult> collide(Component c, CollisionType type);
 }

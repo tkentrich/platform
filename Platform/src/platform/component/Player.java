@@ -70,4 +70,9 @@ public class Player extends Component {
             }
         }
     }
+    
+    @Override
+    public int friction() {
+        return 0;
+    }
 }

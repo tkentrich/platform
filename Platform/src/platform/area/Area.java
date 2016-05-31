@@ -107,15 +107,26 @@ public class Area extends Observable {
         for (Component c : components) {
             c.standing(false);
         }
+        ArrayList<String> checked = new ArrayList();
         for (Space s : space.values()) {
             for (Component c : s.components()) {
-                if (!(c.speed().y() < 0 || c instanceof Terrain)) { // Skip if component is rising or Terrain
+                if (!(c.speed().y() <= 0 || c instanceof Terrain)) { // Skip if component is rising or Terrain
                     for (Component c2 : s.components()) {
-                        if (!c.standing() && Math.abs(c.position().plus(c.size()).y() - c2.position().y()) < 2) {
-                            // System.out.println(c + " is standing");
-                            c.standing(true);
-                            c.position().setY(c2.position().minus(c.size()).y());
-                            c.speed().setY(0);
+                        if (!checked.contains(String.format("%s:%s", c, c2))) {
+                            checked.add(String.format("%s:%s", c, c2));
+                            if (/*!c.standing() && */
+                                    Math.abs(c.position().plus(c.size()).y() - c2.position().y()) < 2 && 
+                                    (
+                                        c.position().x() < c2.position().plus(c2.size()).x() &&
+                                        c.position().plus(c.size()).x() > c2.position().x()
+                                    )
+                                    ) {
+                                // TODO: Percent
+                                System.out.println(c + " is standing on " + c2);
+                                c.standing(c2.friction());
+                                c.position().setY(c2.position().minus(c.size()).y());
+                                c.speed().setY(0);
+                            }
                         }
                     }
                 } else {
@@ -131,7 +142,7 @@ public class Area extends Observable {
             c.gravity(ms);
         }
         for (Component c : components) {
-            c.position().add(c.speed().times(ms).dividedBy(1000));
+            c.move(ms);
         }
         spaceComponents();
         ArrayList<String> checked = new ArrayList();
@@ -154,7 +165,7 @@ public class Area extends Observable {
                                )
                                 ) {
                             checked.add(c.get(c1).id() + ":" + c.get(c2).id());
-                            Collision coll = Collision.test(c.get(c1), c.get(c2));
+                            Collision coll = Collision.test(c.get(c1), c.get(c2), ms);
                             if (coll != null) {
                                 collisions.add(coll);
                                 if (debug) {
@@ -163,8 +174,6 @@ public class Area extends Observable {
                             }
                         }
                     }
-                } else if (debug) {
-                    System.out.println(c.get(c1) + " is Terrain and/or not moving, not checking for collisions");
                 }
             }
             if (debug && checked.size() > 0) {
@@ -175,23 +184,28 @@ public class Area extends Observable {
             }
         }
         for (Collision coll : collisions) {
-            System.out.printf("Collision between %s and %s!%n", coll.comp1(), coll.comp2());
+            System.out.printf("Collision between %s and %s (%s)%n", coll.comp1(), coll.comp2(), coll.type());
             if (!coll.comp2().passable()) {
                 switch (coll.type()) {
                     case NORTH:
                         coll.comp1().position().setY(coll.comp2().position().y() - coll.comp1().size().y());
+                        coll.comp1().speed().setY(0);
                         break;
                     case SOUTH:
                         coll.comp1().position().setY(coll.comp2().position().y() + coll.comp2().size().y());
+                        coll.comp1().speed().setY(0);
                         break;
                     case EAST:
                         coll.comp1().position().setX(coll.comp2().position().x() + coll.comp2().size().x());
+                        coll.comp1().speed().setX(0);
                         break;
                     case WEST:
                         coll.comp1().position().setX(coll.comp2().position().x() - coll.comp1().size().x());
+                        coll.comp1().speed().setX(0);
                         break;
                     default:
                 }
+                System.out.printf("  After collision: %s %n", coll.comp1().info());
             }
             coll.comp1().collide(coll.comp2(), coll.type());
             coll.comp2().collide(coll.comp1(), coll.type());

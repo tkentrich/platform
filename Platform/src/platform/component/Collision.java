@@ -28,17 +28,17 @@ public class Collision {
         this.coll = coll;
     }
     
-    public static Collision test (Component a, Component b) {
+    public static Collision test (Component a, Component b, int ms) {
         CollisionType coll;
         
         if (a.equals(b)) {
             return null;
         }
         
-        if (a.position().x() > b.position().plus(b.size()).x() // A to the right of B
-         || a.position().y() > b.position().plus(b.size()).y() // A below B
-         || a.position().plus(a.size()).x() < b.position().x() // A to the left of B
-         || a.position().plus(a.size()).y() < b.position().y() // A above B
+        if (a.position().x() >= b.position().plus(b.size()).x() // A to the right of B
+         || a.position().y() >= b.position().plus(b.size()).y() // A below B
+         || a.position().plus(a.size()).x() <= b.position().x() // A to the left of B
+         || a.position().plus(a.size()).y() <= b.position().y() // A above B
            ) {
             coll = CollisionType.NONE;
         } else {
@@ -46,11 +46,11 @@ public class Collision {
             coll = CollisionType.GENERAL;
             Dimension aBef1, aBef2, bBef1, bBef2;
             Dimension aAft1, aAft2, bAft1, bAft2;
-            aBef1 = a.position().minus(a.speed());
+            aBef1 = a.position().minus(a.speed().times(ms).dividedBy(1000));
             aBef2 = aBef1.plus(a.size());
             aAft1 = a.position();
             aAft2 = aAft1.plus(a.size());
-            bBef1 = b.position().minus(b.speed());
+            bBef1 = b.position().minus(b.speed().times(ms).dividedBy(1000));
             bBef2 = bBef1.plus(b.size());
             bAft1 = b.position();
             bAft2 = bAft1.plus(b.size());

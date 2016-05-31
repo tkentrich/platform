@@ -88,4 +88,8 @@ public class Dirt extends Terrain {
         return 0;
     }
     
+    @Override
+    public int friction() {
+        return 250;
+    }
 }

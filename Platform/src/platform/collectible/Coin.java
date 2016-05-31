@@ -27,7 +27,7 @@ public class Coin extends Collectible {
     }
     public Coin(Dimension position, Dimension speed) {
         super(position);
-        this.speed = speed.copy();
+        push(speed.times(weight()));
         System.out.println("Coin speed: " + speed);
         init();
     }
@@ -86,4 +86,8 @@ public class Coin extends Collectible {
         return Platform.blockSize.y() * 8;
     }
     
+    @Override
+    public int friction() {
+        return 0;
+    }
 }
