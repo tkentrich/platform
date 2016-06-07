@@ -46,6 +46,7 @@ public class Player extends Component {
         public double backHipTheta;    // {-PI/3..PI/3} 0 = straight down
         public double backKneeTheta;   // {0    ..PI/2} 0 = straight with Hip
         public int millis;     // milliseconds until target should be reached
+        public Pose target;
         public Pose(double neck, double frShldr, double frElbow, double bkShldr, double bkElbow, double frHip, double frKnee, double bkHip, double bkKnee, int ms) {
             neckTheta = neck;
             frontShldrTheta = frShldr;
@@ -59,6 +60,7 @@ public class Player extends Component {
             millis = ms;
         }
         public Pose(Pose from, Pose to) {
+            target = to;
             neckTheta = delta(to.neckTheta, from.neckTheta) / to.millis;
             frontShldrTheta = delta(to.frontShldrTheta, from.frontShldrTheta) / to.millis;
             frontElbowTheta = delta(to.frontElbowTheta, from.frontElbowTheta) / to.millis;
