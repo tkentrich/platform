@@ -58,24 +58,74 @@ public class Player extends Component {
             backKneeTheta = bkKnee;
             millis = ms;
         }
+        public Pose(Pose from, Pose to) {
+            neckTheta = (to.neckTheta - from.neckTheta) * 1000 / to.millis;
+            frontShldrTheta = (to.frontShldrTheta - from.frontShldrTheta) * 1000 / to.millis;
+            frontElbowTheta = (to.frontElbowTheta - from.frontElbowTheta) * 1000 / to.millis;
+            backShldrTheta = (to.backShldrTheta - from.backShldrTheta) * 1000 / to.millis;
+            backElbowTheta = (to.backElbowTheta - from.backElbowTheta) * 1000 / to.millis;
+            frontHipTheta = (to.frontHipTheta - from.frontHipTheta) * 1000 / to.millis;
+            frontKneeTheta = (to.frontKneeTheta - from.frontKneeTheta) * 1000 / to.millis;
+            backHipTheta = (to.backHipTheta - from.backHipTheta) * 1000 / to.millis;
+            backKneeTheta = (to.backKneeTheta - from.backKneeTheta) * 1000 / to.millis;
+        }
     }
     public Pose atRest() {
         return new Pose(0, 0, 0, PI, 0, PI/6, -PI/6, -PI/6, PI/6, 0);
     }
     public Pose test() {
-        return new Pose(-PI/8, 0, 1, PI, -1, 1, -1, -0.5, 0, 500);
+        return new Pose(-PI/8, 0, 1, PI, -1, 1, -1, -0.5, 0, 5000);
     }
-
+    public Pose step1() {
+        return new Pose(-PI/8, PI/6, PI/3, PI*-5/6, PI/6, -PI/6, PI/6, PI/6, -PI/6, 1000);
+    }
+    public Pose step2() {
+        return new Pose(0    , PI*-5/6, PI/6, PI/6, PI/3, 0    , 0   , 0   , 0    , 1000);
+    }
+    public Pose step3() {
+        return new Pose(PI/8 , PI*-5/6, PI/6, PI/6, PI/3, PI/6, -PI/6, -PI/6, PI/6 , 1000);
+    }
+    public Pose step4() {
+        return new Pose(0    , PI*-5/6, PI/6, PI/6, PI/3, 0    , 0   , 0   , 0    , 1000);
+    }
+    
+    private static ArrayList<Pose> restPose;
+    private static ArrayList<Pose> walkPose;
     private Pose pose;
     private Pose targetPose;
+    private int targetPoseTime;
+    private ArrayList<Pose> poseChain;
+    private int chainIndex;
+    
+    private void setChain(ArrayList<Pose> newChain) {
+        poseChain = newChain;
+        chainIndex = 0;
+    }
+    
+    private void setTargetPose(Pose newPose) {
+        targetPose = new Pose(pose, newPose);
+        targetPoseTime = newPose.millis;
+    }
     
     public Player(Dimension position) {
         super(position);
         pose = atRest();
-        targetPose = atRest();
+        targetPose = null;
         kb_left = kb_right = kb_up = kb_down = kb_jump = kb_fire = kb_run = false;
         status = PlayerStatus.STAND;
         facing = PlayerFacing.RIGHT;
+        if (walkPose == null) {
+            walkPose = new ArrayList();
+            walkPose.add(step1());
+            walkPose.add(step2());
+            walkPose.add(step3());
+            walkPose.add(step4());
+        }
+        if (restPose == null) {
+            restPose = new ArrayList();
+            restPose.add(atRest());
+        }
+        setChain(restPose);
     }
 
     @Override
@@ -131,6 +181,24 @@ public class Player extends Component {
     @Override
     public void move(int ms) {
         super.move(ms);
+        if (targetPose != null && targetPoseTime > 0) {
+            pose.neckTheta += targetPose.neckTheta * ms;
+            pose.frontShldrTheta += targetPose.frontShldrTheta * ms;
+            pose.backShldrTheta += targetPose.backShldrTheta * ms;
+            pose.frontElbowTheta += targetPose.frontElbowTheta * ms;
+            pose.backElbowTheta += targetPose.backElbowTheta * ms;
+            pose.frontHipTheta += targetPose.frontHipTheta * ms;
+            pose.backHipTheta += targetPose.backHipTheta * ms;
+            pose.frontKneeTheta += targetPose.frontKneeTheta * ms;
+            pose.backKneeTheta += targetPose.backKneeTheta * ms;
+            targetPoseTime -= ms;
+        } else if (targetPoseTime <= 0) {
+            pose = poseChain.get(chainIndex);
+            targetPose = null;
+        } else {
+            chainIndex = (chainIndex + 1) % poseChain.size();
+            setTargetPose(poseChain.get(chainIndex));
+        }
     }
     
     public void ui(PlayerCommand comm) {
@@ -147,6 +215,7 @@ public class Player extends Component {
                 if (kb_left) {
                     kb_right = false;
                     facing = PlayerFacing.LEFT;
+                    setChain(walkPose);
                 }
                 break;
             case KeyEvent.VK_RIGHT:
@@ -154,6 +223,7 @@ public class Player extends Component {
                 if (kb_right) {
                     kb_left = false;
                     facing = PlayerFacing.RIGHT;
+                    setChain(walkPose);
                 }
                 break;
             case KeyEvent.VK_SHIFT:
