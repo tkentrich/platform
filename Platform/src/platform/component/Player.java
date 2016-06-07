@@ -291,7 +291,7 @@ public class Player extends Component {
         Dimension midpoint = middle;//.plus(0, med);
         Dimension neckStart = midpoint.plus(chestSize.plus(neckSize).times(0, -1));
         Dimension shoulder = middle.minus(0, med);
-        Dimension elbow = shoulder.plus(-med * 2, 0);
+        Dimension elbow = shoulder.plus(0, med * 2);
         Dimension knee = middle.plus(0, big + med + small);
         
         Graphics2D g_orig;
@@ -303,9 +303,9 @@ public class Player extends Component {
         g = (Graphics2D) g_orig.create();
         g.setColor(armColor());
         g.transform(AffineTransform.getRotateInstance(pose.backShldrTheta, shoulder.x(), shoulder.y()));
-        g.fillPolygon(polygon(shoulder.plus(-med, -small), -med, small, med, small));
+        g.fillPolygon(polygon(shoulder.plus(-small, med), small, med, small, -med));
         g.transform(AffineTransform.getRotateInstance(pose.backElbowTheta, elbow.x(), elbow.y()));
-        g.fillPolygon(polygon(elbow.plus(0, -small), -med, small, med, small));
+        g.fillPolygon(polygon(elbow.plus(-small, 0), small, med, small, -med));
         g.dispose();
                 
         // Back leg
@@ -347,9 +347,9 @@ public class Player extends Component {
         g = (Graphics2D) g_orig.create();
         g.setColor(armColor());
         g.transform(AffineTransform.getRotateInstance(pose.frontShldrTheta, shoulder.x(), shoulder.y()));
-        g.fillPolygon(polygon(shoulder.plus(-med, -small), -med, small, med, small));
+        g.fillPolygon(polygon(shoulder.plus(-small, med), small, med, small, -med));
         g.transform(AffineTransform.getRotateInstance(pose.frontElbowTheta, elbow.x(), elbow.y()));
-        g.fillPolygon(polygon(elbow.plus(0, -small), -med, small, med, small));
+        g.fillPolygon(polygon(elbow.plus(-small, 0), small, med, small, -med));
         g.dispose();
                 
         // Front leg
