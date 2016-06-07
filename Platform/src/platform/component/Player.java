@@ -59,36 +59,44 @@ public class Player extends Component {
             millis = ms;
         }
         public Pose(Pose from, Pose to) {
-            neckTheta = (to.neckTheta - from.neckTheta) * 1000 / to.millis;
-            frontShldrTheta = (to.frontShldrTheta - from.frontShldrTheta) * 1000 / to.millis;
-            frontElbowTheta = (to.frontElbowTheta - from.frontElbowTheta) * 1000 / to.millis;
-            backShldrTheta = (to.backShldrTheta - from.backShldrTheta) * 1000 / to.millis;
-            backElbowTheta = (to.backElbowTheta - from.backElbowTheta) * 1000 / to.millis;
-            frontHipTheta = (to.frontHipTheta - from.frontHipTheta) * 1000 / to.millis;
-            frontKneeTheta = (to.frontKneeTheta - from.frontKneeTheta) * 1000 / to.millis;
-            backHipTheta = (to.backHipTheta - from.backHipTheta) * 1000 / to.millis;
-            backKneeTheta = (to.backKneeTheta - from.backKneeTheta) * 1000 / to.millis;
+            neckTheta = delta(to.neckTheta, from.neckTheta) / to.millis;
+            frontShldrTheta = delta(to.frontShldrTheta, from.frontShldrTheta) / to.millis;
+            frontElbowTheta = delta(to.frontElbowTheta, from.frontElbowTheta) / to.millis;
+            backShldrTheta = delta(to.backShldrTheta, from.backShldrTheta) / to.millis;
+            backElbowTheta = delta(to.backElbowTheta, from.backElbowTheta) / to.millis;
+            frontHipTheta = delta(to.frontHipTheta, from.frontHipTheta) / to.millis;
+            frontKneeTheta = delta(to.frontKneeTheta, from.frontKneeTheta) / to.millis;
+            backHipTheta = delta(to.backHipTheta, from.backHipTheta) / to.millis;
+            backKneeTheta = delta(to.backKneeTheta, from.backKneeTheta) / to.millis;
+        }
+        public double delta(double to, double from) {
+            double delta = to - from;
+            // TODO: Wraparound (Maybe to + 2PI is closer to from)
+            return delta;
+        }
+        public String toString() {
+            return String.format("N%1.2f FS%1.2f FE%1.2f BS%1.2f GE%1.2f FH%1.2f FK%1.2f BH%1.2f BK%1.2f", neckTheta, frontShldrTheta, frontElbowTheta, backShldrTheta, backElbowTheta, frontHipTheta, frontKneeTheta, backHipTheta, backKneeTheta);
         }
     }
     public Pose atRest() {
-        return new Pose(0, 0, 0, PI, 0, PI/6, -PI/6, -PI/6, PI/6, 0);
+        return new Pose(0, 0, 0, PI, 0, PI/6, -PI/6, -PI/6, PI/6, 1);
     }
+    public Pose step1() {
+        return atRest();
+    }
+    public Pose step2() {
+        return new Pose(-PI/8, PI/6, PI/3, PI*-5/6, PI/6, -PI/6, PI/6, PI/6, -PI/6, 10000);
+    }
+    public Pose step3() {
+        return new Pose(0    , PI*-5/6, PI/6, PI/6, PI/3, 0    , 0   , 0   , 0    , 1000);
+    }
+    public Pose step4() {
+        return new Pose(PI/8 , PI*-5/6, PI/6, PI/6, PI/3, PI/6, -PI/6, -PI/6, PI/6 , 1000);
+    }
+    
     public Pose test() {
         return new Pose(-PI/8, 0, 1, PI, -1, 1, -1, -0.5, 0, 5000);
     }
-    public Pose step1() {
-        return new Pose(-PI/8, PI/6, PI/3, PI*-5/6, PI/6, -PI/6, PI/6, PI/6, -PI/6, 1000);
-    }
-    public Pose step2() {
-        return new Pose(0    , PI*-5/6, PI/6, PI/6, PI/3, 0    , 0   , 0   , 0    , 1000);
-    }
-    public Pose step3() {
-        return new Pose(PI/8 , PI*-5/6, PI/6, PI/6, PI/3, PI/6, -PI/6, -PI/6, PI/6 , 1000);
-    }
-    public Pose step4() {
-        return new Pose(0    , PI*-5/6, PI/6, PI/6, PI/3, 0    , 0   , 0   , 0    , 1000);
-    }
-    
     private static ArrayList<Pose> restPose;
     private static ArrayList<Pose> walkPose;
     private Pose pose;
@@ -100,6 +108,7 @@ public class Player extends Component {
     private void setChain(ArrayList<Pose> newChain) {
         poseChain = newChain;
         chainIndex = 0;
+        setTargetPose(poseChain.get(chainIndex));
     }
     
     private void setTargetPose(Pose newPose) {
@@ -182,22 +191,22 @@ public class Player extends Component {
     public void move(int ms) {
         super.move(ms);
         if (targetPose != null && targetPoseTime > 0) {
-            pose.neckTheta += targetPose.neckTheta * ms;
-            pose.frontShldrTheta += targetPose.frontShldrTheta * ms;
-            pose.backShldrTheta += targetPose.backShldrTheta * ms;
-            pose.frontElbowTheta += targetPose.frontElbowTheta * ms;
-            pose.backElbowTheta += targetPose.backElbowTheta * ms;
-            pose.frontHipTheta += targetPose.frontHipTheta * ms;
-            pose.backHipTheta += targetPose.backHipTheta * ms;
-            pose.frontKneeTheta += targetPose.frontKneeTheta * ms;
-            pose.backKneeTheta += targetPose.backKneeTheta * ms;
+            pose.neckTheta += targetPose.neckTheta * ms % PI;
+            pose.frontShldrTheta += targetPose.frontShldrTheta * ms % PI;
+            pose.backShldrTheta += targetPose.backShldrTheta * ms % PI;
+            pose.frontElbowTheta += targetPose.frontElbowTheta * ms % PI;
+            pose.backElbowTheta += targetPose.backElbowTheta * ms % PI;
+            pose.frontHipTheta += targetPose.frontHipTheta * ms % PI;
+            pose.backHipTheta += targetPose.backHipTheta * ms % PI;
+            pose.frontKneeTheta += targetPose.frontKneeTheta * ms % PI;
+            pose.backKneeTheta += targetPose.backKneeTheta * ms % PI;
             targetPoseTime -= ms;
-        } else if (targetPoseTime <= 0) {
-            pose = poseChain.get(chainIndex);
-            targetPose = null;
-        } else {
+        } else if (targetPose == null) {
             chainIndex = (chainIndex + 1) % poseChain.size();
             setTargetPose(poseChain.get(chainIndex));
+        } else {
+            pose = poseChain.get(chainIndex);
+            targetPose = null;
         }
     }
     
@@ -353,9 +362,16 @@ public class Player extends Component {
         g.dispose();
         
         // Bounding rectangle
-        g = (Graphics2D) g_orig.create();
+        /*g = (Graphics2D) g_orig.create();
         g.setColor(Color.WHITE);
         g.drawRect(position().x(), position().y(), size().x(), size().y());
+        g.dispose();*/
+        
+        // Info
+        g = (Graphics2D) g_orig.create();
+        g.setColor(Color.WHITE);
+        g.drawString(String.format("Target Time: %d Chain Index: %d", targetPoseTime, chainIndex), position().x() - 100, position().y() - 100);
+        g.drawString(pose.toString(), position().x() - 100, position().y() - 50);
         g.dispose();
         
     }
