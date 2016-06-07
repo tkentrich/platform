@@ -35,6 +35,7 @@ public class CanvasViewer extends Canvas {
         if (strategy == null) {
             createBufferStrategy(2);
             strategy = getBufferStrategy();
+            System.out.println(strategy.toString());
         }
         
         if (strategy == null) {
@@ -81,7 +82,8 @@ public class CanvasViewer extends Canvas {
                 }
                 
                 for (Component c : comps) {
-                    g.drawImage(c.image(), c.position().minus(start).x(), c.position().minus(start).y(), c.size().x(), c.size().y(), null);
+                    // g.drawImage(c.image(), c.position().minus(start).x(), c.position().minus(start).y(), c.size().x(), c.size().y(), null);
+                    c.display(g, start);
                 }
                 
                 g.dispose();

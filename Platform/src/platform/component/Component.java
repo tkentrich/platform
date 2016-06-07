@@ -1,5 +1,7 @@
 package platform.component;
 
+import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import platform.Dimension;
@@ -81,12 +83,17 @@ public abstract class Component {
     public boolean standing() {
         return standing;
     }
+    public void display(Graphics2D g, Dimension start) {
+        g.drawImage(image(), position().minus(start).x(), position().minus(start).y(), size().x(), size().y(), null);
+    }
+
     public String info() {
         return String.format("%s Pos:%s Size:%s Speed:%s", toString(), position(), size(), speed());
     }
     public String toString() {
         return getClass().getSimpleName() + id;
     }
+    
     public abstract int maxFallSpeed();
     public abstract boolean visible();
     public abstract boolean passable();
@@ -94,6 +101,32 @@ public abstract class Component {
     public abstract BufferedImage image();
     public abstract int weight();
     public abstract int friction();
-    // public abstract void collide(Component c);
     public abstract ArrayList<CollisionResult> collide(Component c, CollisionType type);
+
+    protected static Polygon polygon(Dimension start, Dimension... delta) {
+        int points = delta.length + 1;
+        int[] xpoints = new int[points];
+        int[] ypoints = new int[points];
+        xpoints[0] = start.x();
+        ypoints[0] = start.y();
+        for (int i = 0; i < delta.length; i++) {
+            xpoints[i + 1] = start.plus(delta[i]).x();
+            ypoints[i + 1] = start.plus(delta[i]).y();
+        }
+        return new Polygon(xpoints, ypoints, points);
+    }
+    protected static Polygon polygon(Dimension start, int... delta) {
+        int points = delta.length / 2 + 1;
+        int[] xpoints = new int[points];
+        int[] ypoints = new int[points];
+        xpoints[0] = start.x();
+        ypoints[0] = start.y();
+        int di = 1;
+        for (int i = 0; i < delta.length; i+=2) {
+            xpoints[di] = xpoints[di - 1] + delta[i];
+            ypoints[di] = ypoints[di - 1] + delta[i+1];
+            di++;
+        }
+        return new Polygon(xpoints, ypoints, points);
+    }
 }

@@ -9,6 +9,7 @@ import platform.component.Collision;
 import platform.component.Component;
 import platform.component.Player;
 import platform.component.terrain.Terrain;
+import static platform.Platform.debug;
 
 /**
  *
@@ -20,21 +21,13 @@ public class Area extends Observable {
     private HashMap<String, Space> space;
     private Player player;
     private boolean initialized;
-    private boolean debug;
     
     public Area(Dimension size) {
         this.size = size;
         components = new ArrayList();
         initialized = false;
     }
-    
-    public void debug() {
-        debug = !debug;
-    }
-    public void debug(boolean debug) {
-        this.debug = debug;
-    }
-    
+        
     public ArrayList<Component> components() {
         return components;
     }
@@ -122,7 +115,7 @@ public class Area extends Observable {
                                     )
                                     ) {
                                 // TODO: Percent
-                                System.out.println(c + " is standing on " + c2);
+                                // System.out.println(c + " is standing on " + c2);
                                 c.standing(c2.friction());
                                 c.position().setY(c2.position().minus(c.size()).y());
                                 c.speed().setY(0);
@@ -144,6 +137,8 @@ public class Area extends Observable {
         for (Component c : components) {
             c.move(ms);
         }
+        player().control();
+        
         spaceComponents();
         ArrayList<String> checked = new ArrayList();
         ArrayList<Collision> collisions = new ArrayList();
@@ -184,7 +179,9 @@ public class Area extends Observable {
             }
         }
         for (Collision coll : collisions) {
-            System.out.printf("Collision between %s and %s (%s)%n", coll.comp1(), coll.comp2(), coll.type());
+            if (debug) {
+                System.out.printf("Collision between %s and %s (%s)%n", coll.comp1(), coll.comp2(), coll.type());
+            }
             if (!coll.comp2().passable()) {
                 switch (coll.type()) {
                     case NORTH:
@@ -205,7 +202,9 @@ public class Area extends Observable {
                         break;
                     default:
                 }
-                System.out.printf("  After collision: %s %n", coll.comp1().info());
+                if (debug) {
+                    System.out.printf("  After collision: %s %n", coll.comp1().info());
+                }
             }
             coll.comp1().collide(coll.comp2(), coll.type());
             coll.comp2().collide(coll.comp1(), coll.type());

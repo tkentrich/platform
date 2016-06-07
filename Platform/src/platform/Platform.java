@@ -1,5 +1,6 @@
 package platform;
 
+import java.awt.event.KeyEvent;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
@@ -8,7 +9,6 @@ import static platform.Platform.blockSize;
 import platform.area.Area;
 import platform.area.AreaException;
 import platform.collectible.Coin;
-import platform.component.Component;
 import platform.component.Player;
 import platform.component.terrain.Dirt;
 
@@ -23,7 +23,8 @@ public class Platform implements Observer {
     
     private CanvasViewer v;
     private Area currentArea;
-
+    public static boolean debug;
+    
     public static void main(String[] args) throws AreaException {
         new Platform();
     }
@@ -32,9 +33,17 @@ public class Platform implements Observer {
         Window w = new Window();
         v = new CanvasViewer();
         w.add(v);
-        
+        Control c = new Control();
+        c.addObserver(this);
+        w.addKeyListener(c);
+
         currentArea = new Area(blockSize.times(10));
         currentArea.addObserver(this);
+        
+        Player p = new Player(blockSize.times(6, 4));
+        //p.push(blockSize.times(100, -500));
+        currentArea.addComponent(p);
+        
         Dirt d;
         for (int i = 0; i < 10; i++) {
             d = new Dirt(blockSize.times(0, i));
@@ -48,16 +57,9 @@ public class Platform implements Observer {
         }
         
         Coin c1 = new Coin(blockSize.times(5, 2), new Dimension(-200, 50));
-        currentArea.addComponent(c1);
         Coin c2 = new Coin(blockSize.times(8, 4), new Dimension(200, 100));
+        currentArea.addComponent(c1);
         currentArea.addComponent(c2);
-        
-        //Player p = new Player(blockSize.times(6, 1));
-        //p.push(blockSize.times(100, -500));
-        Player p = new Player(blockSize.times(6, 4));
-        p.push(blockSize.times(100, -500));
-        
-        currentArea.addComponent(p);
         
         try {
             currentArea.initialize();
@@ -66,14 +68,10 @@ public class Platform implements Observer {
         }
         
         int msperframe = 1000/15;
-        for (int frame = 0; frame < 60; frame++) {
+        //for (int frame = 0; frame < 60; frame++) {
+        while (true) {
             long startTime = System.currentTimeMillis();
-            // System.out.println("1 " + p.info());
-                
             currentArea.moveAll(msperframe);
-            // System.out.println("2 " + p.info());
-
-            System.out.printf("  Frame %d (%dms) took %dms to process%n", frame, msperframe, System.currentTimeMillis() - startTime);
             long timeToSleep = 100 - (System.currentTimeMillis() - startTime);
             if (timeToSleep > 0) {
                 try {
@@ -83,19 +81,33 @@ public class Platform implements Observer {
                     Logger.getLogger(Platform.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            /* System.out.println("  Coin 1 position: " + c1.position() + " speed: " + c1.speed());
-            System.out.println("  Coin 2 position: " + c2.position() + " speed: " + c2.speed());
-            System.out.println("  Player position: " + p.position() + " speed: " + p.speed()); */
-            System.out.println(c1.info());
         }
-        //for (Component c : currentArea.components()) {
-        //    System.out.println(c.info());
-        //}
-        System.exit(0);
+        
     }
 
     @Override
     public void update(Observable o, Object arg) {
+        if (o instanceof Control) {
+            if (arg instanceof PlayerCommand) {
+                PlayerCommand comm = (PlayerCommand)arg;
+                switch (comm.event().getKeyCode()) {
+                    case KeyEvent.VK_UP:
+                    case KeyEvent.VK_DOWN:
+                    case KeyEvent.VK_LEFT:
+                    case KeyEvent.VK_RIGHT:
+                    case KeyEvent.VK_CONTROL: // FIRE
+                    case KeyEvent.VK_SPACE:   // JUMP
+                    case KeyEvent.VK_SHIFT:   // RUN
+                    case KeyEvent.VK_ALT:     // ???
+                        currentArea.player().ui(comm);
+                        break;
+                    case KeyEvent.VK_Q:
+                        System.exit(0);
+                    case KeyEvent.VK_D:
+                        debug = !debug;
+                }
+            }
+        }
         v.paintArea(currentArea);
     }
         
