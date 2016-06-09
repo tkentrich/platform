@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Observable;
 import platform.Dimension;
 import platform.Platform;
 import platform.component.Collision.CollisionType;
@@ -12,7 +13,7 @@ import platform.component.Collision.CollisionType;
  *
  * @author richkent
  */
-public abstract class Component {
+public abstract class Component extends Observable {
     private int id;
     private static int ID = 0;
     private Dimension position;

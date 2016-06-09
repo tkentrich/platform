@@ -23,7 +23,11 @@ public class Platform implements Observer {
     
     private CanvasViewer v;
     private Area currentArea;
+    private PoseScene scene;
     public static boolean debug;
+    
+    enum GameMode {NORMAL, POSE};
+    private GameMode mode;
     
     public static void main(String[] args) throws AreaException {
         new Platform();
@@ -37,8 +41,11 @@ public class Platform implements Observer {
         c.addObserver(this);
         w.addKeyListener(c);
 
+        mode = GameMode.NORMAL;
+        
         currentArea = new Area(blockSize.times(10));
         currentArea.addObserver(this);
+        scene = new PoseScene();
         
         Player p = new Player(blockSize.times(6, 4));
         //p.push(blockSize.times(100, -500));
@@ -71,8 +78,15 @@ public class Platform implements Observer {
         //for (int frame = 0; frame < 60; frame++) {
         while (true) {
             long startTime = System.currentTimeMillis();
-            currentArea.moveAll(msperframe);
-            long timeToSleep = 100 - (System.currentTimeMillis() - startTime);
+            switch (mode) {
+                case NORMAL:
+                    currentArea.moveAll(msperframe);
+                    break;
+                case POSE:
+                    scene.move(msperframe);
+                    break;
+            }
+            long timeToSleep = msperframe - (System.currentTimeMillis() - startTime);
             if (timeToSleep > 0) {
                 try {
                 
@@ -90,25 +104,87 @@ public class Platform implements Observer {
         if (o instanceof Control) {
             if (arg instanceof PlayerCommand) {
                 PlayerCommand comm = (PlayerCommand)arg;
-                switch (comm.event().getKeyCode()) {
-                    case KeyEvent.VK_UP:
-                    case KeyEvent.VK_DOWN:
-                    case KeyEvent.VK_LEFT:
-                    case KeyEvent.VK_RIGHT:
-                    case KeyEvent.VK_CONTROL: // FIRE
-                    case KeyEvent.VK_SPACE:   // JUMP
-                    case KeyEvent.VK_SHIFT:   // RUN
-                    case KeyEvent.VK_ALT:     // ???
-                        currentArea.player().ui(comm);
+                switch (mode) {
+                    case NORMAL:
+                        switch (comm.event().getKeyCode()) {
+                            case KeyEvent.VK_UP:
+                            case KeyEvent.VK_DOWN:
+                            case KeyEvent.VK_LEFT:
+                            case KeyEvent.VK_RIGHT:
+                            case KeyEvent.VK_CONTROL: // FIRE
+                            case KeyEvent.VK_SPACE:   // JUMP
+                            case KeyEvent.VK_SHIFT:   // RUN
+                            case KeyEvent.VK_ALT:     // ???
+                                currentArea.player().ui(comm);
+                                break;
+                            case KeyEvent.VK_Q:
+                                System.exit(0);
+                            case KeyEvent.VK_D:
+                                if (comm.typed()) {
+                                    debug = !debug;
+                                }
+                                break;
+                            case KeyEvent.VK_F1:
+                                if (comm.typed()) {
+                                    mode = GameMode.POSE;
+                                }
+                                break;
+                        }
                         break;
-                    case KeyEvent.VK_Q:
-                        System.exit(0);
-                    case KeyEvent.VK_D:
-                        debug = !debug;
+                    case POSE:
+                        switch (comm.typed() ? comm.event().getKeyCode() : 0) {
+                            case KeyEvent.VK_UP:
+                                scene.adjust(Math.toRadians(5));
+                                break;
+                            case KeyEvent.VK_DOWN:
+                                scene.adjust(Math.toRadians(-5));
+                                break;
+                            case KeyEvent.VK_SPACE:
+                                scene.nextAngle();
+                                break;
+                            case KeyEvent.VK_PLUS:
+                            case KeyEvent.VK_CLOSE_BRACKET:
+                                scene.adjust(50);
+                                break;
+                            case KeyEvent.VK_MINUS:
+                            case KeyEvent.VK_OPEN_BRACKET:
+                                scene.adjust(-50);
+                                break;
+                            case KeyEvent.VK_S:
+                                scene.savePose();
+                                break;
+                            case KeyEvent.VK_N:
+                                scene.newPose();
+                                break;
+                            case KeyEvent.VK_ENTER:
+                                scene.resetChain();
+                                break;
+                            case KeyEvent.VK_PERIOD:
+                                scene.nextPose();
+                                break;
+                            case KeyEvent.VK_COMMA:
+                                scene.prevPose();
+                                break;
+                            case KeyEvent.VK_F1:
+                                if (comm.typed()) {
+                                    mode = GameMode.NORMAL;
+                                }
+                                break;
+                            case KeyEvent.VK_Q:
+                                System.exit(0);
+                        }
+                        break;
                 }
             }
         }
-        v.paintArea(currentArea);
+        switch (mode) {
+            case NORMAL:
+                v.paintArea(currentArea);
+                break;
+            case POSE:
+                v.paintPose(scene);
+                break;
+        }    
     }
         
 }

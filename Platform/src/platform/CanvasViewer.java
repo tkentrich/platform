@@ -10,6 +10,8 @@ import platform.Dimension;
 import platform.area.Area;
 import platform.area.Space;
 import platform.component.Component;
+import platform.component.Player;
+import platform.component.Player.Pose;
 
 /**
  *
@@ -26,6 +28,57 @@ public class CanvasViewer extends Canvas {
     public CanvasViewer(Dimension size) {
         setBounds(0, 0, size.width, size.height);
         setIgnoreRepaint(true);
+    }
+    
+    public void paintPose(PoseScene p) {
+        
+        if (strategy == null) {
+            createBufferStrategy(2);
+            strategy = getBufferStrategy();
+            System.out.println(strategy.toString());
+        }
+        
+        if (strategy == null) {
+            return;
+        }
+        Dimension totalSize = new Dimension(getWidth(), getHeight());
+        
+        Dimension coord;
+        // coord = new Dimension(start);
+        if (strategy == null) {
+            try {
+                createBufferStrategy(2);
+                strategy = getBufferStrategy();
+            } catch (IllegalStateException ise) {
+                System.out.println("Still unable to set canvas/strategy");
+                return;
+            }
+        }
+        Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
+        
+        if (g == null) {
+            System.out.println("Graphics g is null....");
+        } else {
+            try {
+                g.setColor(Color.BLACK);
+                g.fillRect(0, 0, totalSize.x(), totalSize.y());
+                
+                p.editing.display(g, new Dimension(0));
+                p.display.display(g, new Dimension(0));
+                
+                g.setColor(Color.WHITE);
+                int y = 350;
+                for (Pose pose : p.chain) {
+                    g.drawString(pose.toString(), 300, y);
+                    y += 50;
+                }
+                
+                g.dispose();
+                strategy.show();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
     
     public void paintArea(Area a) {
