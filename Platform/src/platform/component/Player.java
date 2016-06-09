@@ -132,6 +132,10 @@ public class Player extends Component {
     private void setTargetPose(Pose newPose) {
         targetPose = new Pose(pose, newPose);
         targetPoseTime = newPose.millis;
+        if (targetPoseTime < 10) {
+            pose = newPose;
+            targetPose = null;
+        }
     }
     
     public Player(Dimension position) {
@@ -212,7 +216,7 @@ public class Player extends Component {
     @Override
     public void move(int ms) {
         super.move(ms);
-        if (targetPose != null && targetPoseTime > 0) {
+        if (targetPose != null && targetPoseTime > ms) {
             for (Theta t : Theta.values()) {
                 pose.theta.put(t, pose.theta.get(t) + targetPose.theta.get(t) * ms % PI);
             }
@@ -389,11 +393,11 @@ public class Player extends Component {
         
         
         // Info
-        /*g = (Graphics2D) g_orig.create();
+        g = (Graphics2D) g_orig.create();
         g.setColor(Color.WHITE);
         g.drawString(String.format("Target Time: %d Chain Index: %d", targetPoseTime, chainIndex), position().x() - 100, position().y() - 100);
         g.drawString(pose.toString(), position().x() - 100, position().y() - 50);
-        g.dispose(); */
+        g.dispose();
         
     }
     

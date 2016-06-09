@@ -11,7 +11,7 @@ import platform.component.Player.Theta;
  *
  * @author richkent
  */
-public class PoseScene implements Observer {
+public class PoseScene extends Observable implements Observer {
     public Player editing;
     public Player display;
     public Theta theta;
@@ -21,8 +21,9 @@ public class PoseScene implements Observer {
     public PoseScene() {
         theta = Theta.NECK;
         editing = new Player(new Dimension(300, 200));
-        display = new Player(new Dimension(600, 200));
+        display = new Player(new Dimension(600, 225));
         chain = new ArrayList();
+        chain.add(Player.atRest());
     }
     
     public Player editing() {
@@ -67,7 +68,13 @@ public class PoseScene implements Observer {
     public void savePose() {
         chain.set(chainIndex, editing.pose());
     }
+    public void print() {
+        for (Pose p : chain) {
+            System.out.println(p);
+        }
+    }
     public void resetChain() {
+        System.out.println(System.currentTimeMillis() + " chain reset");
         ArrayList<Pose> newChain = new ArrayList();
         for (Pose p : chain) {
             newChain.add(new Pose(p));
@@ -76,6 +83,8 @@ public class PoseScene implements Observer {
     }
     public void move(int ms) {
         display.move(ms);
+        setChanged();
+        notifyObservers();
     }
 
     @Override

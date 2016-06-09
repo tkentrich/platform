@@ -165,6 +165,9 @@ public class Platform implements Observer {
                             case KeyEvent.VK_COMMA:
                                 scene.prevPose();
                                 break;
+                            case KeyEvent.VK_P:
+                                scene.print();
+                                break;
                             case KeyEvent.VK_F1:
                                 if (comm.typed()) {
                                     mode = GameMode.NORMAL;
