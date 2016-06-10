@@ -68,6 +68,9 @@ public class PoseScene extends Observable implements Observer {
     public void savePose() {
         chain.set(chainIndex, editing.pose());
     }
+    public void copyPose() {
+        chain.add(new Pose(editing.pose()));
+    }
     public void print() {
         for (Pose p : chain) {
             System.out.println(p);

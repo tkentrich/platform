@@ -46,6 +46,7 @@ public class Platform implements Observer {
         currentArea = new Area(blockSize.times(10));
         currentArea.addObserver(this);
         scene = new PoseScene();
+        scene.addObserver(this);
         
         Player p = new Player(blockSize.times(6, 4));
         //p.push(blockSize.times(100, -500));
@@ -152,6 +153,9 @@ public class Platform implements Observer {
                                 break;
                             case KeyEvent.VK_S:
                                 scene.savePose();
+                                break;
+                            case KeyEvent.VK_C:
+                                scene.copyPose();
                                 break;
                             case KeyEvent.VK_N:
                                 scene.newPose();

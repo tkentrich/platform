@@ -89,11 +89,17 @@ public class Player extends Component {
                     millis);
         }
     }
+        /*
+            N0.00 FS-0.52 FE0.35 BS0.44 GE-0.44 FH0.52 FK-0.52 BH-0.52 BK0.52 [1]
+            N-0.09 FS-1.05 FE0.52 BS1.13 GE0.61 FH0.44 FK-0.44 BH-0.87 BK0.61 [500]
+            N0.09 FS1.05 FE0.70 BS-1.05 GE0.52 FH-0.87 FK-0.52 BH0.52 BK-0.52 [650]
+            N0.00 FS0.87 FE-0.35 BS-0.79 GE0.35 FH-0.35 FK0.26 BH0.26 BK-0.26 [200]
+        */
     public static Pose zero() {
         return new Pose(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
     public static Pose atRest() {
-        return new Pose(0, 0, 0, PI, 0, PI/6, -PI/6, -PI/6, PI/6, 1);
+        return new Pose(Math.toRadians(5), 0, 0, PI, 0, PI/6, -PI/6, -PI/6, PI/6, 1);
     }
     
     public static Pose step1() {
@@ -218,7 +224,7 @@ public class Player extends Component {
         super.move(ms);
         if (targetPose != null && targetPoseTime > ms) {
             for (Theta t : Theta.values()) {
-                pose.theta.put(t, pose.theta.get(t) + targetPose.theta.get(t) * ms % PI);
+                pose.theta.put(t, pose.theta.get(t) + targetPose.theta.get(t) * ms);
             }
             targetPoseTime -= ms;
         } else if (targetPose == null) {
@@ -229,7 +235,7 @@ public class Player extends Component {
                 notifyObservers();
             }
         } else {
-            pose = poseChain.get(chainIndex);
+            pose = targetPose;
             targetPose = null;
         }
     }
