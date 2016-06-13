@@ -24,7 +24,7 @@ import platform.PlayerCommand;
  */
 public class Player extends Component {
 
-    public enum PlayerStatus { STAND, WALK, JUMP, FALL };
+    public enum PlayerStatus { STAND, WALK, JUMP, FALL, CROUCH };
     public enum PlayerFacing { LEFT, RIGHT };
     public enum Theta {NECK, FRONT_SHOULDER, FRONT_ELBOW, BACK_SHOULDER, BACK_ELBOW, FRONT_HIP, FRONT_KNEE, BACK_HIP, BACK_KNEE};
     
@@ -32,6 +32,7 @@ public class Player extends Component {
     private PlayerFacing facing;
     private int jumpsRemaining;
     private int jumpForceRemaining;
+    private int crouchTimeRemaining;
     
     private boolean kb_left, kb_right, kb_up, kb_down, kb_jump, kb_fire, kb_run;
         
@@ -101,7 +102,7 @@ public class Player extends Component {
                     theta.get(Theta.FRONT_HIP), theta.get(Theta.FRONT_KNEE), // frontHipTheta, frontKneeTheta, 
                     theta.get(Theta.BACK_HIP), theta.get(Theta.BACK_KNEE), // backHipTheta, backKneeTheta);
                     millis);*/
-            return String.format("N%d FS%d FE%d BS%d BE%d FH%d FK%d BH%d BK%d [%d]", 
+            return String.format("N%1f FS%1f FE%1f BS%1f BE%1f FH%1f FK%1f BH%1f BK%1f [%d]", 
                     Math.toDegrees(theta.get(Theta.NECK)), 
                     Math.toDegrees(theta.get(Theta.FRONT_SHOULDER)), Math.toDegrees(theta.get(Theta.FRONT_ELBOW)), // frontShldrTheta, frontElbowTheta, 
                     Math.toDegrees(theta.get(Theta.BACK_SHOULDER)), Math.toDegrees(theta.get(Theta.BACK_ELBOW)), // backShldrTheta, backElbowTheta, 
@@ -142,6 +143,7 @@ public class Player extends Component {
     public static Pose test() {
         return new Pose(-PI/8, 0, 1, PI, -1, 1, -1, -0.5, 0, 5000);
     }
+    
     private static ArrayList<Pose> restPose;
     private static ArrayList<Pose> walkPose;
     private Pose pose;
@@ -150,6 +152,21 @@ public class Player extends Component {
     private ArrayList<Pose> poseChain;
     private int chainIndex;
     
+    private void setStatus(PlayerStatus newStatus) {
+        if (status != newStatus) {
+            switch(newStatus) {
+                case WALK:
+                    setChain(walkPose);
+                    break;
+                default:
+                    setChain(restPose);
+                    break;
+            }
+        } else if (poseChain == null) {
+            setChain(restPose);
+        }
+        status = newStatus;
+    }
     public void setPose(Pose pose) {
         this.pose = pose;
         this.pose.target = pose;
@@ -171,11 +188,6 @@ public class Player extends Component {
     
     public Player(Dimension position) {
         super(position);
-        pose = atRest();
-        targetPose = null;
-        kb_left = kb_right = kb_up = kb_down = kb_jump = kb_fire = kb_run = false;
-        status = PlayerStatus.STAND;
-        facing = PlayerFacing.RIGHT;
         if (walkPose == null) {
             walkPose = new ArrayList();
             walkPose.add(step1());
@@ -187,7 +199,11 @@ public class Player extends Component {
             restPose = new ArrayList();
             restPose.add(atRest());
         }
-        setChain(restPose);
+        pose = atRest();
+        targetPose = null;
+        kb_left = kb_right = kb_up = kb_down = kb_jump = kb_fire = kb_run = false;
+        setStatus(PlayerStatus.STAND);
+        facing = PlayerFacing.RIGHT;
     }
 
     @Override
@@ -240,6 +256,15 @@ public class Player extends Component {
     public void playerStanding() {
         jumpsRemaining = numberOfJumps();
         jumpForceRemaining = jumpForce();
+        switch(status) {
+            default:
+            case STAND:
+            case WALK:
+                break;
+            case JUMP:
+            case FALL:
+                setStatus(kb_right || kb_left ? PlayerStatus.STAND : PlayerStatus.WALK);
+        }
     }
     
     public Pose pose() {
@@ -249,6 +274,16 @@ public class Player extends Component {
     @Override
     public void move(int ms) {
         super.move(ms);
+        switch (status) {
+            case CROUCH:
+                crouchTimeRemaining -= ms;
+                if (crouchTimeRemaining <= 0) {
+                    setStatus(PlayerStatus.JUMP);
+                }
+                break;
+            case JUMP:
+                break;
+        }
         if (targetPose != null && targetPoseTime > ms) {
             for (Theta t : Theta.values()) {
                 pose.theta.put(t, pose.theta.get(t) + targetPose.theta.get(t) * ms);
@@ -285,12 +320,9 @@ public class Player extends Component {
                 if (kb_left) {
                     kb_right = false;
                     facing = PlayerFacing.LEFT;
-                    if (status == PlayerStatus.STAND) {
-                        setChain(walkPose);
-                    }
-                    status = PlayerStatus.WALK;
+                    setStatus(PlayerStatus.WALK);
                 } else if (!kb_right) {
-                    setPose(atRest());
+                    setStatus(PlayerStatus.STAND);
                 }
                 break;
             case KeyEvent.VK_RIGHT:
@@ -298,12 +330,9 @@ public class Player extends Component {
                 if (kb_right) {
                     kb_left = false;
                     facing = PlayerFacing.RIGHT;
-                    if (status == PlayerStatus.STAND) {
-                        setChain(walkPose);
-                    }
-                    status = PlayerStatus.WALK;
+                    setStatus(PlayerStatus.WALK);
                 } else if (!kb_left) {
-                    setPose(atRest());
+                    setStatus(PlayerStatus.STAND);
                 }
                 break;
             case KeyEvent.VK_SHIFT:
@@ -318,8 +347,16 @@ public class Player extends Component {
                     switch (status) {
                         case WALK:
                         case STAND:
-                            status = PlayerStatus.JUMP;
+                            setStatus(PlayerStatus.CROUCH);
+                            crouchTimeRemaining = crouchTime();
                             break;
+                        case CROUCH:
+                            setStatus(PlayerStatus.STAND);
+                            break;
+                        case JUMP:
+                            setStatus(PlayerStatus.FALL);
+                            break;
+                            
                     }
                 }
                 break;
@@ -329,11 +366,6 @@ public class Player extends Component {
     }
     
     public void control() {
-        switch (status) {
-            case JUMP:
-                break;
-        }
-        
         int orig_speed = speed().x();
         if (kb_left) {
             push(new Dimension(-walkForce(), 0));
@@ -341,14 +373,12 @@ public class Player extends Component {
             if (speed().x() < -walkSpeed()) {
                 speed().setX((orig_speed < -walkSpeed()) ? orig_speed : -walkSpeed());
             }
-            System.out.printf("Control: Orig speed %d New speed %d (Max speed: %d)%n", orig_speed, speed().x(), walkSpeed());
         } else if (kb_right) {
             push(new Dimension(walkForce(), 0));
             facing = PlayerFacing.RIGHT;
             if (speed().x() > walkSpeed()) {
                 speed().setX((orig_speed > walkSpeed()) ? orig_speed : walkSpeed());
             }
-            System.out.printf("Control: Orig speed %d New speed %d (Max speed: %d)%n", orig_speed, speed().x(), walkSpeed());
         }
     }
     
@@ -365,9 +395,9 @@ public class Player extends Component {
         
         Dimension midpoint = new Dimension(0); //middle;//.plus(0, med);
         Dimension neckStart = midpoint.plus(chestSize.plus(neckSize).times(0, -1));
-        Dimension shoulder = middle.minus(0, med);
+        Dimension shoulder = midpoint.minus(0, med);
         Dimension elbow = shoulder.plus(0, med * 2);
-        Dimension knee = middle.plus(0, big + med + small);
+        Dimension knee = midpoint.plus(0, big + med + small);
         
         Graphics2D g_orig;
         g_orig = (Graphics2D) g_start.create();
@@ -387,7 +417,8 @@ public class Player extends Component {
 
                 // Back arm
                 g = (Graphics2D) g_orig.create();
-                g.setColor(armColor());
+                //g.setColor(armColor());
+                g.setColor(Color.red);
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_SHOULDER), shoulder.x(), shoulder.y()));
                 g.fillPolygon(polygon(shoulder.plus(-small, med), small, med, small, -med));
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_ELBOW), elbow.x(), elbow.y()));
@@ -474,10 +505,13 @@ public class Player extends Component {
         return Platform.blockSize.y() * 3 * weight();
     }
     private int walkForce() {
-        return Platform.blockSize.x() * 2 * weight();
+        return Platform.blockSize.x() * weight();
     }
     private int walkSpeed() {
         return Platform.blockSize.x() * (kb_run ? 8 : 4);
+    }
+    private int crouchTime() {
+        return 300;
     }
     
     private Color armColor() {
@@ -486,7 +520,7 @@ public class Player extends Component {
     private Color legColor() {
         return Color.BLUE;
     }
-    private Color torsoColor() {
+    private Color torsoColor() { 
         return Color.LIGHT_GRAY;
     }
     private Color headColor() {
