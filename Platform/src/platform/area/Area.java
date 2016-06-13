@@ -64,12 +64,12 @@ public class Area extends Observable {
         space.clear();
         
         for (Component c : components) {
-            Dimension start = c.position().dividedBy(Platform.spaceSize);
-            Dimension end = c.position().plus(c.size()).dividedBy(Platform.spaceSize);
+            Dimension start = c.position().minus(15).dividedBy(Platform.spaceSize);
+            Dimension end = c.position().plus(c.size().plus(15)).dividedBy(Platform.spaceSize);
             
             for (int y = start.y(); y <= end.y(); y++) {
                 if (c.position().plus(c.size()).minus(start.times(Platform.spaceSize)).y() > 0) {
-                    for (int x = 0; x <= end.x(); x++) {
+                    for (int x = start.x(); x <= end.x(); x++) {
                         if (c.position().plus(c.size()).minus(start.times(Platform.spaceSize)).x() > 0) {
                             addToSpace(x, y, c);
                         }
@@ -103,19 +103,15 @@ public class Area extends Observable {
         ArrayList<String> checked = new ArrayList();
         for (Space s : space.values()) {
             for (Component c : s.components()) {
-                if (!(c.speed().y() <= 0 || c instanceof Terrain)) { // Skip if component is rising or Terrain
+                if (!(c.speed().y() < 0 || c instanceof Terrain)) { // Skip if component is rising or Terrain
                     for (Component c2 : s.components()) {
-                        if (!checked.contains(String.format("%s:%s", c, c2))) {
+                        if (!(checked.contains(String.format("%s:%s", c, c2)) || c.equals(c2))) {
                             checked.add(String.format("%s:%s", c, c2));
-                            if (/*!c.standing() && */
-                                    Math.abs(c.position().plus(c.size()).y() - c2.position().y()) < 2 && 
-                                    (
-                                        c.position().x() < c2.position().plus(c2.size()).x() &&
-                                        c.position().plus(c.size()).x() > c2.position().x()
-                                    )
-                                    ) {
+                            int above = Math.abs(c2.position().y() - c.position().plus(c.size()).y());
+                            int rightOf = c.position().x() - c2.position().plus(c2.size()).x();
+                            int leftOf = c2.position().x() - c.position().plus(c.size()).x();
+                            if (above < 2 && rightOf < 0 && leftOf < 0) {
                                 // TODO: Percent
-                                // System.out.println(c + " is standing on " + c2);
                                 c.standing(c2.friction());
                                 c.position().setY(c2.position().minus(c.size()).y());
                                 c.speed().setY(0);
@@ -127,6 +123,7 @@ public class Area extends Observable {
                 }
             }
         }
+        
     }
     
     public void moveAll(int ms) {
@@ -144,14 +141,9 @@ public class Area extends Observable {
         ArrayList<Collision> collisions = new ArrayList();
         for (Space s : space.values()) {
             ArrayList<Component> c = s.components();
-            if (debug) {
-                System.out.println("Space has " + c.size() + " components");
-            }
+            
             for (int c1 = 0; c1 < c.size(); c1++) {
                 if (!(c.get(c1) instanceof Terrain || c.get(c1).speed().isZero()) ) {
-                    if (debug) {
-                        System.out.println("Testing collisions for " + c.get(c1));
-                    }
                     for (int c2 = 0; c2 < c.size(); c2++) {
                         if (c1 != c2 &&
                               !(
@@ -163,25 +155,14 @@ public class Area extends Observable {
                             Collision coll = Collision.test(c.get(c1), c.get(c2), ms);
                             if (coll != null) {
                                 collisions.add(coll);
-                                if (debug) {
-                                    System.out.println("Collision: " + coll.description());
-                                }
                             }
                         }
                     }
                 }
             }
-            if (debug && checked.size() > 0) {
-                System.out.println("Checked the following for collisions: ");
-                for (String str : checked) {
-                    System.out.println("  " + str);
-                }
-            }
         }
         for (Collision coll : collisions) {
-            if (debug) {
-                System.out.printf("Collision between %s and %s (%s)%n", coll.comp1(), coll.comp2(), coll.type());
-            }
+            // System.out.printf(" Collision between %s and %s direction %s %n", coll.comp1(), coll.comp2(), coll.type().name());
             if (!coll.comp2().passable()) {
                 switch (coll.type()) {
                     case NORTH:

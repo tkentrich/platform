@@ -17,6 +17,7 @@ public abstract class Component extends Observable {
     private int id;
     private static int ID = 0;
     private Dimension position;
+    private Dimension previousPosition;
     private Dimension speed;
     private boolean standing;
     private int actingFriction;
@@ -25,6 +26,7 @@ public abstract class Component extends Observable {
     public Component(Dimension position) {
         id = ID++;
         this.position = position.copy();
+        this.previousPosition = position.copy();
         this.speed = new Dimension(0);
         standing = false;
         frictionComponents = 0;
@@ -35,6 +37,9 @@ public abstract class Component extends Observable {
     }
     public Dimension position() {
         return position;
+    }
+    public Dimension previousPosition() {
+        return previousPosition;
     }
     public Dimension speed() {
         // return new Dimension(speed);
@@ -52,21 +57,22 @@ public abstract class Component extends Observable {
         }
     }
     public void move(int ms) {
+        previousPosition = position.copy();
         position().add(speed().times(ms).dividedBy(1000));
-        if (actingFriction == 0) {
-            return;
+        if (actingFriction != 0) {
+            int speedReduction;
+            if (speed().x() > 0) {
+                speedReduction = -actingFriction * ms / 1000;
+            } else {
+                speedReduction = actingFriction * ms / 1000;
+            }
+            if (Math.abs(speedReduction) > Math.abs(speed().x())) {
+                speedReduction = -speed().x();
+            }
+            speed().add(speedReduction, 0);
         }
-        int speedReduction;
-        if (speed().x() > 0) {
-            speedReduction = -actingFriction * ms / 1000;
-        } else {
-            speedReduction = actingFriction * ms / 1000;
-        }
-        if (Math.abs(speedReduction) > Math.abs(speed().x())) {
-            speedReduction = -speed().x();
-        }
-        speed().add(speedReduction, 0);
     }
+    
     public void standing(int actingFriction) {
         standing(true);
         this.actingFriction *= frictionComponents++;

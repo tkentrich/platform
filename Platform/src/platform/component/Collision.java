@@ -7,7 +7,7 @@ import platform.Dimension;
  * @author richkent
  */
 public class Collision {
-    public enum CollisionType { NONE, GENERAL, NORTH, SOUTH, EAST, WEST};
+    public enum CollisionType { NONE, GENERAL, NORTH, SOUTH, EAST, WEST, PRE};
     
     /*private enum sideSpec { 
         NORTH(1), SOUTH(2), EAST(3), WEST(4);
@@ -46,11 +46,11 @@ public class Collision {
             coll = CollisionType.GENERAL;
             Dimension aBef1, aBef2, bBef1, bBef2;
             Dimension aAft1, aAft2, bAft1, bAft2;
-            aBef1 = a.position().minus(a.speed().times(ms).dividedBy(1000));
+            aBef1 = a.previousPosition();
             aBef2 = aBef1.plus(a.size());
             aAft1 = a.position();
             aAft2 = aAft1.plus(a.size());
-            bBef1 = b.position().minus(b.speed().times(ms).dividedBy(1000));
+            bBef1 = b.previousPosition();
             bBef2 = bBef1.plus(b.size());
             bAft1 = b.position();
             bAft2 = bAft1.plus(b.size());
@@ -59,13 +59,13 @@ public class Collision {
             //   which can also mean all the way across.
             //   I.E. Across the West boundary can mean "Is to the East"
             int before =
-                (aBef1.x() < bBef2.x() ? EAST : 0) +
-                (aBef2.x() > bBef1.x() ? WEST : 0) +
+                (aBef1.x() < bBef2.x() ? EAST  : 0) +
+                (aBef2.x() > bBef1.x() ? WEST  : 0) +
                 (aBef1.y() < bBef2.y() ? SOUTH : 0) +
                 (aBef2.y() > bBef1.y() ? NORTH : 0);
             int after = 
-                (aAft1.x() < bAft2.x() ? EAST : 0) +
-                (aAft2.x() > bAft1.x() ? WEST : 0) +
+                (aAft1.x() < bAft2.x() ? EAST  : 0) +
+                (aAft2.x() > bAft1.x() ? WEST  : 0) +
                 (aAft1.y() < bAft2.y() ? SOUTH : 0) +
                 (aAft2.y() > bAft1.y() ? NORTH : 0);
             switch (after & ~before) {
@@ -81,6 +81,13 @@ public class Collision {
                 case WEST:
                     coll = CollisionType.WEST;
                     break;
+                case 0:
+                    coll = CollisionType.PRE;
+                    break;
+                default:
+                    System.out.printf("Other type: %s%n %s %s %s %s %s%n", coll.name(), a.info(), b.info(), before, after, after & ~before);
+                    System.out.println("  " + aBef1 + "," + aBef2 + " -> " + aAft1 + "," + aAft2);
+                    System.out.println("  " + bBef1 + "," + bBef2 + " -> " + bAft1 + "," + bAft2);
                     // MORE THAN ONE?
             }
         }
@@ -101,6 +108,6 @@ public class Collision {
     }
     
     public String description() {
-        return String.format("Component %s collided %s with Component %s", a.id(), coll.name(), b.id());
+        return String.format("Component %s collided %s with Component %s", a.toString(), coll.name(), b.toString());
     }
 }

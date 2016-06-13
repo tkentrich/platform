@@ -16,7 +16,7 @@ public class Window extends JFrame {
 
         setUndecorated(true);
         setVisible(true);
-        //setBounds(200, 0, 800, 800);
+        // setBounds(200, 0, 800, 500);
         setExtendedState(getExtendedState()|MAXIMIZED_BOTH);
         
         getContentPane().setCursor(Toolkit.getDefaultToolkit().createCustomCursor(

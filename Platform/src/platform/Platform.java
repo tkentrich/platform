@@ -18,13 +18,14 @@ import platform.component.terrain.Dirt;
  */
 public class Platform implements Observer {
     public static Dimension blockSize = new Dimension(48, 48);
-    public static Dimension spaceSize = new Dimension(200, 200);
+    public static Dimension spaceSize = new Dimension(192, 192);
     public static final int GRAVITY = blockSize.y() * 20;
     
     private CanvasViewer v;
     private Area currentArea;
     private PoseScene scene;
     public static boolean debug;
+    public static Dimension screenSize;
     
     enum GameMode {NORMAL, POSE};
     private GameMode mode;
@@ -34,14 +35,16 @@ public class Platform implements Observer {
     }
 
     public Platform() {
+        mode = GameMode.NORMAL;
+
         Window w = new Window();
         v = new CanvasViewer();
         w.add(v);
         Control c = new Control();
         c.addObserver(this);
         w.addKeyListener(c);
-
-        mode = GameMode.NORMAL;
+        
+        screenSize = new Dimension(w.getWidth(), w.getHeight());
         
         currentArea = new Area(blockSize.times(10));
         currentArea.addObserver(this);
@@ -53,7 +56,8 @@ public class Platform implements Observer {
         currentArea.addComponent(p);
         
         Dirt d;
-        for (int i = 0; i < 10; i++) {
+        Dimension levelSize = new Dimension(1000, 400);
+        /* for (int i = 0; i < 80; i++) {
             d = new Dirt(blockSize.times(0, i));
             currentArea.addComponent(d);
             d = new Dirt(blockSize.times(9, i));
@@ -62,6 +66,14 @@ public class Platform implements Observer {
             currentArea.addComponent(d);
             d = new Dirt(blockSize.times(i, 9));
             currentArea.addComponent(d);
+        } */
+        for (int y = 0; y < levelSize.y(); y += blockSize.y()) {
+            currentArea.addComponent(new Dirt(new Dimension(0, y)));
+            currentArea.addComponent(new Dirt(new Dimension((levelSize.x() - blockSize.x()) / blockSize.x() * blockSize.x(), y)));
+        }
+        for (int x = 0; x < levelSize.x(); x += blockSize.x()) {
+            currentArea.addComponent(new Dirt(new Dimension(x, 0)));
+            currentArea.addComponent(new Dirt(new Dimension(x, levelSize.y() - blockSize.y())));
         }
         
         Coin c1 = new Coin(blockSize.times(5, 2), new Dimension(-200, 50));
@@ -76,7 +88,6 @@ public class Platform implements Observer {
         }
         
         int msperframe = 1000/15;
-        //for (int frame = 0; frame < 60; frame++) {
         while (true) {
             long startTime = System.currentTimeMillis();
             switch (mode) {
@@ -90,7 +101,6 @@ public class Platform implements Observer {
             long timeToSleep = msperframe - (System.currentTimeMillis() - startTime);
             if (timeToSleep > 0) {
                 try {
-                
                     Thread.sleep(timeToSleep);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Platform.class.getName()).log(Level.SEVERE, null, ex);
