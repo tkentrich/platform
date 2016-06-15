@@ -24,7 +24,7 @@ import platform.PlayerCommand;
  */
 public class Player extends Component {
 
-    public enum PlayerStatus { STAND, WALK, JUMP, FALL, CROUCH };
+    public enum PlayerStatus { STAND, WALK, JUMP, FALL, SPRING, CROUCH };
     public enum PlayerFacing { LEFT, RIGHT };
     public enum Theta {NECK, FRONT_SHOULDER, FRONT_ELBOW, BACK_SHOULDER, BACK_ELBOW, FRONT_HIP, FRONT_KNEE, BACK_HIP, BACK_KNEE};
     
