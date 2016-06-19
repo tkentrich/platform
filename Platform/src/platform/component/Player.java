@@ -361,8 +361,7 @@ public class Player extends Component {
 
                 // Back arm
                 g = (Graphics2D) g_orig.create();
-                //g.setColor(armColor());
-                g.setColor(Color.red);
+                g.setColor(armColor());
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_SHOULDER), shoulder.x(), shoulder.y()));
                 g.fillPolygon(polygon(shoulder.plus(-small, med), small, med, small, -med));
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_ELBOW), elbow.x(), elbow.y()));
