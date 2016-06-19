@@ -87,7 +87,7 @@ public class Platform implements Observer {
             Logger.getLogger(Platform.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        int msperframe = 1000/15;
+        int msperframe = 1000/9;
         while (true) {
             long startTime = System.currentTimeMillis();
             switch (mode) {

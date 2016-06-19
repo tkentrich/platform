@@ -2,21 +2,17 @@ package platform.component;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import platform.Dimension;
 import platform.Platform;
-import static java.lang.Math.PI;
 import platform.PlayerCommand;
+import platform.component.Pose.Theta;
 
 /**
  *
@@ -26,183 +22,136 @@ public class Player extends Component {
 
     public enum PlayerStatus { STAND, WALK, JUMP, FALL, SPRING, CROUCH };
     public enum PlayerFacing { LEFT, RIGHT };
-    public enum Theta {NECK, FRONT_SHOULDER, FRONT_ELBOW, BACK_SHOULDER, BACK_ELBOW, FRONT_HIP, FRONT_KNEE, BACK_HIP, BACK_KNEE};
+    public enum MainAction { NONE, WALK, RUN, JUMP, SLIDE };
+    public enum SecondaryAction { NONE, FIRE };
     
     private PlayerStatus status;
     private PlayerFacing facing;
+    private MainAction mainAction;
+    private SecondaryAction secondaryAction;
+    
     private int jumpsRemaining;
     private int jumpForceRemaining;
     private int crouchTimeRemaining;
+    
+    private PoseChange mainActionPose;
+    private PoseChange secondaryActionPose;
+    
+    private Pose pose;
     
     private boolean kb_left, kb_right, kb_up, kb_down, kb_jump, kb_fire, kb_run;
         
     private static HashMap<String, BufferedImage> images;
 
-    public static class Pose {
-        public HashMap<Theta, Double> theta;
-        public int millis;     // milliseconds until target should be reached
-        public Pose target;
-        public Pose(double neck, double frShldr, double frElbow, double bkShldr, double bkElbow, double frHip, double frKnee, double bkHip, double bkKnee, int ms) {
-            theta = new HashMap();
-            theta.put(Theta.NECK, neck); // neckTheta = neck;
-            theta.put(Theta.FRONT_SHOULDER, frShldr); // frontShldrTheta = frShldr;
-            theta.put(Theta.FRONT_ELBOW, frElbow); // frontElbowTheta = frElbow;
-            theta.put(Theta.BACK_SHOULDER, bkShldr); // backShldrTheta = bkShldr;
-            theta.put(Theta.BACK_ELBOW, bkElbow); // backElbowTheta = bkElbow;
-            theta.put(Theta.FRONT_HIP, frHip); // frontHipTheta = frHip;
-            theta.put(Theta.FRONT_KNEE, frKnee); // frontKneeTheta = frKnee;
-            theta.put(Theta.BACK_HIP, bkHip); // backHipTheta = bkHip;
-            theta.put(Theta.BACK_KNEE, bkKnee); // backKneeTheta = bkKnee;
-            millis = ms;
-        }
-        public Pose(int neck, int frShldr, int frElbow, int bkShldr, int bkElbow, int frHip, int frKnee, int bkHip, int bkKnee, int ms) {
-            theta = new HashMap();
-            theta.put(Theta.NECK, Math.toRadians(neck)); // neckTheta = neck;
-            theta.put(Theta.FRONT_SHOULDER, Math.toRadians(frShldr)); // frontShldrTheta = frShldr;
-            theta.put(Theta.FRONT_ELBOW, Math.toRadians(frElbow)); // frontElbowTheta = frElbow;
-            theta.put(Theta.BACK_SHOULDER, Math.toRadians(bkShldr)); // backShldrTheta = bkShldr;
-            theta.put(Theta.BACK_ELBOW, Math.toRadians(bkElbow)); // backElbowTheta = bkElbow;
-            theta.put(Theta.FRONT_HIP, Math.toRadians(frHip)); // frontHipTheta = frHip;
-            theta.put(Theta.FRONT_KNEE, Math.toRadians(frKnee)); // frontKneeTheta = frKnee;
-            theta.put(Theta.BACK_HIP, Math.toRadians(bkHip)); // backHipTheta = bkHip;
-            theta.put(Theta.BACK_KNEE, Math.toRadians(bkKnee)); // backKneeTheta = bkKnee;
-            millis = ms;
-            target = this;
-        }
-        public Pose(Pose from, Pose to) {
-            target = to;
-            theta = new HashMap();
-            for (Theta t : Theta.values()) {
-                theta.put(t, delta(to.theta.get(t), from.theta.get(t)) / to.millis);
-            }
-        }
-        public Pose(Pose from) {
-            theta = new HashMap();
-            for (Theta t : Theta.values()) {
-                theta.put(t, from.theta(t));
-            }
-            millis = from.millis;
-        }
-        public void adjustTheta(Theta t, double delta) {
-            theta.put(t, theta(t) + delta);
-        }
-        public double theta(Theta t) {
-            return theta.get(t);
-        }
-        public double delta(double to, double from) {
-            double delta = to - from;
-            // TODO: Wraparound (Maybe to + 2PI is closer to from)
-            return delta;
-        }
-        public String toString() {
-            /*return String.format("N%1.2f FS%1.2f FE%1.2f BS%1.2f BE%1.2f FH%1.2f FK%1.2f BH%1.2f BK%1.2f [%d]", 
-                    theta.get(Theta.NECK), 
-                    theta.get(Theta.FRONT_SHOULDER), theta.get(Theta.FRONT_ELBOW), // frontShldrTheta, frontElbowTheta, 
-                    theta.get(Theta.BACK_SHOULDER), theta.get(Theta.BACK_ELBOW), // backShldrTheta, backElbowTheta, 
-                    theta.get(Theta.FRONT_HIP), theta.get(Theta.FRONT_KNEE), // frontHipTheta, frontKneeTheta, 
-                    theta.get(Theta.BACK_HIP), theta.get(Theta.BACK_KNEE), // backHipTheta, backKneeTheta);
-                    millis);*/
-            return String.format("N%1f FS%1f FE%1f BS%1f BE%1f FH%1f FK%1f BH%1f BK%1f [%d]", 
-                    Math.toDegrees(theta.get(Theta.NECK)), 
-                    Math.toDegrees(theta.get(Theta.FRONT_SHOULDER)), Math.toDegrees(theta.get(Theta.FRONT_ELBOW)), // frontShldrTheta, frontElbowTheta, 
-                    Math.toDegrees(theta.get(Theta.BACK_SHOULDER)), Math.toDegrees(theta.get(Theta.BACK_ELBOW)), // backShldrTheta, backElbowTheta, 
-                    Math.toDegrees(theta.get(Theta.FRONT_HIP)), Math.toDegrees(theta.get(Theta.FRONT_KNEE)), // frontHipTheta, frontKneeTheta, 
-                    Math.toDegrees(theta.get(Theta.BACK_HIP)), Math.toDegrees(theta.get(Theta.BACK_KNEE)), // backHipTheta, backKneeTheta);
-                    millis);
-        }
+    public static Pose playerPose(int n, int fs, int fe, int bs, int be, int fh, int fk, int bh, int bk) {
+        HashMap<Theta, Double> m = new HashMap();
+        m.put(Theta.NECK, Math.toRadians(n));
+        m.put(Theta.FRONT_SHOULDER, Math.toRadians(fs));
+        m.put(Theta.FRONT_ELBOW, Math.toRadians(fe));
+        m.put(Theta.BACK_SHOULDER, Math.toRadians(bs));
+        m.put(Theta.BACK_ELBOW, Math.toRadians(be));
+        m.put(Theta.FRONT_HIP, Math.toRadians(fh));
+        m.put(Theta.FRONT_KNEE, Math.toRadians(fk));
+        m.put(Theta.BACK_HIP, Math.toRadians(bh));
+        m.put(Theta.BACK_KNEE, Math.toRadians(bk));
+        return new Pose(m);
     }
-        /*
-            N0.00 FS-0.52 FE0.35 BS0.44 GE-0.44 FH0.52 FK-0.52 BH-0.52 BK0.52 [1]
-            N-0.09 FS-1.05 FE0.52 BS1.13 GE0.61 FH0.44 FK-0.44 BH-0.87 BK0.61 [500]
-            N0.09 FS1.05 FE0.70 BS-1.05 GE0.52 FH-0.87 FK-0.52 BH0.52 BK-0.52 [650]
-            N0.00 FS0.87 FE-0.35 BS-0.79 GE0.35 FH-0.35 FK0.26 BH0.26 BK-0.26 [200]
-        */
-        /*
-            N0.00 FS-0.61 FE0.26 BS0.52 GE-0.26 FH0.52 FK-0.52 BH-0.52 BK0.52 [1]
-            N-0.09 FS1.13 FE0.61 BS-1.13 GE0.61 FH-0.79 FK-0.61 BH0.44 BK-0.61 [1500]
-            N0.00 FS-0.87 FE0.44 BS1.05 GE0.61 FH0.44 FK-0.52 BH-0.87 BK-0.52 [1500]
-            N0.00 FS-0.61 FE0.26 BS0.52 GE-0.26 FH0.52 FK-0.52 BH-0.52 BK0.52 [1301]
-        */
     public static Pose zero() {
-        return new Pose(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        return playerPose(0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
     public static Pose atRest() {
-        return new Pose(0, -35, 15, 30, -15, 30, -30, -30, 30, 1);
+        return playerPose(0, -35, 15, 30, -15, 30, -30, -30, 30);
     }
     
     public static Pose step1() {
         return atRest();
     }
     public static Pose step2() {
-        return new Pose(-5, 65, 35, -65, 35, -45, -35, 25, -35, 500);
+        return playerPose(-5, 65, 35, -65, 35, -45, -35, 25, -35);
     }
     public static Pose step3() {
-        return new Pose(0, -50, 25, 60, 35, 25, -30, -50, 30, 500);
+        return playerPose(0, -50, 25, 60, 35, 25, -30, -50, 30);
     }
     
     public static Pose test() {
-        return new Pose(-PI/8, 0, 1, PI, -1, 1, -1, -0.5, 0, 5000);
+        return playerPose(-22, 0, 1, 180, -1, 1, -1, -90, 0);
     }
     
-    private static ArrayList<Pose> restPose;
-    private static ArrayList<Pose> walkPose;
-    private Pose pose;
-    private Pose targetPose;
-    private int targetPoseTime;
-    private ArrayList<Pose> poseChain;
-    private int chainIndex;
+    public PoseChain walkChain() {
+        return new PoseChain(1, 
+                    new PoseLink(50, atRest(), atRest(), 5), 
+                    new PoseLink(50, atRest(), step2(), 500),
+                    new PoseLink(50, atRest(), step3(), 500)
+            );
+    }
+    
+    public PoseLink firePose() {
+        HashMap<Theta, Double> fire = new HashMap();
+        fire.put(Theta.FRONT_SHOULDER, 0.0);
+        fire.put(Theta.FRONT_ELBOW, 0.0);
+        fire.put(Theta.BACK_SHOULDER, Math.toRadians(-10));
+        fire.put(Theta.BACK_ELBOW, Math.toRadians(20));
+        return new PoseLink(75, pose, new Pose(fire), 250);
+    }
     
     private void setStatus(PlayerStatus newStatus) {
         if (status != newStatus) {
             switch(newStatus) {
                 case WALK:
-                    setChain(walkPose);
+                    mainActionPose = walkChain();
+                    mainActionPose.resetDeltas(pose);
+                    break;
+                case STAND:
+                    pose = atRest();
+                    mainActionPose = null;
                     break;
                 default:
-                    setChain(restPose);
+                    // setChain(restPose);
                     break;
             }
-        } else if (poseChain == null) {
-            setChain(restPose);
         }
         status = newStatus;
     }
+    
+    private void clearAction() {
+        setAction(MainAction.NONE);
+        setAction(SecondaryAction.NONE);
+    }
+    private void setAction(MainAction main) {
+        mainAction = main;
+        switch (main) {
+            case WALK:
+            case RUN:
+                mainActionPose = walkChain();
+                break;
+            case SLIDE:
+                break;
+            // case CROUCH:
+            //    break;
+            case JUMP:
+                break;
+        }
+    }
+    private void setAction(SecondaryAction secondary) {
+        secondaryAction = secondary;
+        switch (secondaryAction) {
+            case FIRE:
+                secondaryActionPose = firePose();
+                break;
+            case NONE:
+                secondaryActionPose = null;
+        }
+    }
     public void setPose(Pose pose) {
         this.pose = pose;
-        this.pose.target = pose;
-    }
-    public void setChain(ArrayList<Pose> newChain) {
-        poseChain = newChain;
-        chainIndex = 0;
-        setTargetPose(poseChain.get(chainIndex));
-    }
-    
-    private void setTargetPose(Pose newPose) {
-        targetPose = new Pose(pose, newPose);
-        targetPoseTime = newPose.millis;
-        if (targetPoseTime < 10) {
-            pose = newPose;
-            targetPose = null;
-        }
     }
     
     public Player(Dimension position) {
         super(position);
-        if (walkPose == null) {
-            walkPose = new ArrayList();
-            walkPose.add(step1());
-            walkPose.add(step2());
-            walkPose.add(step3());
-            // walkPose.add(step4());
-        }
-        if (restPose == null) {
-            restPose = new ArrayList();
-            restPose.add(atRest());
-        }
-        pose = atRest();
-        targetPose = null;
         kb_left = kb_right = kb_up = kb_down = kb_jump = kb_fire = kb_run = false;
         setStatus(PlayerStatus.STAND);
+        setAction(MainAction.NONE);
+        setAction(SecondaryAction.NONE);
         facing = PlayerFacing.RIGHT;
     }
 
@@ -284,26 +233,22 @@ public class Player extends Component {
             case JUMP:
                 break;
         }
-        if (targetPose != null && targetPoseTime > ms) {
-            for (Theta t : Theta.values()) {
-                pose.theta.put(t, pose.theta.get(t) + targetPose.theta.get(t) * ms);
+        pose.adjust(ms, mainActionPose, secondaryActionPose);
+        if (mainActionPose != null && !mainActionPose.active()) {
+            switch (mainAction) {
+                default:
+                    setPose(atRest());
+                    mainActionPose = null;
+                    break;
             }
-            targetPoseTime -= ms;
-        } else if (targetPose == null) {
-            chainIndex = (chainIndex + 1) % poseChain.size();
-            if (chainIndex == 0 && poseChain.size() > 1) {
-                if (poseChain.get(0).millis < 5) {
-                    chainIndex = 1;
-                }
+        }
+        if (secondaryActionPose != null && !secondaryActionPose.active()) {
+            switch (secondaryAction) {
+                case FIRE:
+                    
+                    secondaryActionPose = null;
             }
-            setTargetPose(poseChain.get(chainIndex));
-            if (chainIndex == 0) {
-                setChanged();
-                notifyObservers();
-            }
-        } else {
-            pose = pose.target;
-            targetPose = null;
+            
         }
     }
     
@@ -356,7 +301,6 @@ public class Player extends Component {
                         case JUMP:
                             setStatus(PlayerStatus.FALL);
                             break;
-                            
                     }
                 }
                 break;

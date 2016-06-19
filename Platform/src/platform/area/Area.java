@@ -3,6 +3,7 @@ package platform.area;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Observable;
+import java.util.Observer;
 import platform.Dimension;
 import platform.Platform;
 import platform.component.Collision;
@@ -10,12 +11,13 @@ import platform.component.Component;
 import platform.component.Player;
 import platform.component.terrain.Terrain;
 import static platform.Platform.debug;
+import platform.component.ActionComplete;
 
 /**
  *
  * @author richkent
  */
-public class Area extends Observable {
+public class Area extends Observable implements Observer {
     private Dimension size;
     private ArrayList<Component> components;
     private HashMap<String, Space> space;
@@ -192,6 +194,19 @@ public class Area extends Observable {
         }
         setChanged();
         notifyObservers();
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        if (o instanceof Player) {
+            Player p = (Player)o;
+            if (arg != null && arg instanceof ActionComplete) {
+                switch (((ActionComplete)arg).action()) {
+                    case FIRE:
+                        // TODO: Fire Gun
+                }
+            }
+        }
     }
     
 }

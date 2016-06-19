@@ -11,7 +11,7 @@ import platform.area.Area;
 import platform.area.Space;
 import platform.component.Component;
 import platform.component.Player;
-import platform.component.Player.Pose;
+import platform.component.Pose;
 
 /**
  *
@@ -68,10 +68,6 @@ public class CanvasViewer extends Canvas {
                 
                 g.setColor(Color.WHITE);
                 int y = 350;
-                for (Pose pose : p.chain) {
-                    g.drawString(pose.toString(), 300, y);
-                    y += 50;
-                }
                 
                 g.dispose();
                 strategy.show();
