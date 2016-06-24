@@ -45,36 +45,25 @@ public class Platform implements Observer {
         w.addKeyListener(c);
         
         screenSize = new Dimension(w.getWidth(), w.getHeight());
+        Dimension levelSize = new Dimension(4000, 1600);
         
-        currentArea = new Area(blockSize.times(10));
+        currentArea = new Area(levelSize);
         currentArea.addObserver(this);
         scene = new PoseScene();
         scene.addObserver(this);
         
-        Player p = new Player(blockSize.times(6, 4));
+        Player p = new Player(blockSize.times(1, 2));
         //p.push(blockSize.times(100, -500));
         currentArea.addComponent(p);
         
-        Dirt d;
-        Dimension levelSize = new Dimension(1000, 400);
-        /* for (int i = 0; i < 80; i++) {
-            d = new Dirt(blockSize.times(0, i));
-            currentArea.addComponent(d);
-            d = new Dirt(blockSize.times(9, i));
-            currentArea.addComponent(d);
-            d = new Dirt(blockSize.times(i, 0));
-            currentArea.addComponent(d);
-            d = new Dirt(blockSize.times(i, 9));
-            currentArea.addComponent(d);
-        } */
-        for (int y = 0; y < levelSize.y(); y += blockSize.y()) {
-            currentArea.addComponent(new Dirt(new Dimension(0, y)));
-            currentArea.addComponent(new Dirt(new Dimension((levelSize.x() - blockSize.x()) / blockSize.x() * blockSize.x(), y)));
-        }
-        for (int x = 0; x < levelSize.x(); x += blockSize.x()) {
-            currentArea.addComponent(new Dirt(new Dimension(x, 0)));
-            currentArea.addComponent(new Dirt(new Dimension(x, levelSize.y() - blockSize.y())));
-        }
+        currentArea.addComponent(new Dirt(new Dimension(0, 0), new Dimension(blockSize.width, levelSize.y()))); // LEFT
+        currentArea.addComponent(new Dirt(new Dimension(blockSize.width, 0), new Dimension(levelSize.x() - blockSize.width * 2, blockSize.y()))); // TOP
+        currentArea.addComponent(new Dirt(new Dimension(blockSize.width, levelSize.y() - blockSize.height), new Dimension(levelSize.x() - blockSize.width * 2, blockSize.y()))); // BOTTOM
+        currentArea.addComponent(new Dirt(new Dimension(levelSize.x() - blockSize.width, 0), new Dimension(blockSize.width / 2, levelSize.y()))); // RIGHT
+        currentArea.addComponent(new Dirt(1, 4, 4, 1));
+        currentArea.addComponent(new Dirt(3, 7, 4, 1));
+        currentArea.addComponent(new Dirt(1, 12, 8, 1));
+        currentArea.addComponent(new Dirt(12, 17, 4, 1));
         
         Coin c1 = new Coin(blockSize.times(5, 2), new Dimension(-200, 50));
         Coin c2 = new Coin(blockSize.times(8, 4), new Dimension(200, 100));

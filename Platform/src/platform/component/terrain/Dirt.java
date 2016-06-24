@@ -16,34 +16,20 @@ import platform.Platform;
  */
 public class Dirt extends Terrain {
 
-    //enum DirtType {
-    //    A, B, C
-    //};
-    // private DirtType dt;
-    //public static HashMap<DirtType, BufferedImage> images;
     public static BufferedImage image;
+    private Dimension size;
     
-    public Dirt(Dimension position) {
+    public Dirt(Dimension position, Dimension size) {
         super(position);
-        /*int rnd = (int)(Math.random() * 3);
-        switch (rnd) {
-            default:
-            case 0:
-                dt = DirtType.A;
-                break;
-            case 1:
-                dt = DirtType.B;
-                break;
-            case 2:
-                dt = DirtType.C;
-                break;
-        }*/
+        this.size = size;
     }
-    
-    /*public Dirt(Dimension position, DirtType dt) {    
+    public Dirt(Dimension position, int xBlocks, int yBlocks) {
         super(position);
-        this.dt = dt;
-    }*/
+        size = new Dimension(xBlocks, yBlocks).times(Platform.blockSize);
+    }
+    public Dirt(int xStart, int yStart, int xBlocks, int yBlocks) {
+        this(new Dimension(xStart, yStart).times(Platform.blockSize), xBlocks, yBlocks);
+    }
     
     public static void initImages() {
         if (image == null) {
@@ -53,13 +39,6 @@ public class Dirt extends Terrain {
             } catch (IOException ex) {
                 Logger.getLogger(Dirt.class.getName()).log(Level.SEVERE, null, ex);
             }
-            /*images = new HashMap();
-            try {
-            images.put(DirtType.A, ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Dirt-A.png")));
-            images.put(DirtType.B, ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Dirt-B.png")));
-            images.put(DirtType.C, ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Dirt-C.png")));
-            } catch (IOException ex) {
-            }*/
         }
     }
     
@@ -70,7 +49,7 @@ public class Dirt extends Terrain {
 
     @Override
     public Dimension size() {
-        return Platform.blockSize;
+        return size.copy();
     }
     
     @Override
