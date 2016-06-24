@@ -47,7 +47,6 @@ public class PoseChain extends PoseChange {
     public void advance(int ms) {
         chain.get(chainIndex).advance(ms);
         if (!chain.get(chainIndex).active()) {
-            System.out.println("Next link");
             Pose ending = chain.get(chainIndex).targetPose();
             chain.get(chainIndex).reset();
             chainIndex++;
@@ -61,7 +60,6 @@ public class PoseChain extends PoseChange {
     @Override
     public void resetDeltas(Pose current) {
         chain.get(chainIndex).resetDeltas(current);
-        System.out.println("Reset Deltas");
     }
 
     @Override

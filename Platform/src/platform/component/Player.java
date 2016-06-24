@@ -20,7 +20,7 @@ import platform.component.Pose.Theta;
  */
 public class Player extends Component {
 
-    public enum PlayerStatus { STAND, WALK, JUMP, FALL, SPRING, CROUCH };
+    public enum PlayerStatus { STAND, WALK, JUMP, FALL, SPRING, CROUCH, SLIDE };
     public enum PlayerFacing { LEFT, RIGHT };
     public enum MainAction { NONE, WALK, RUN, JUMP, SLIDE };
     public enum SecondaryAction { NONE, FIRE };
@@ -43,7 +43,7 @@ public class Player extends Component {
         
     private static HashMap<String, BufferedImage> images;
 
-    public static Pose playerPose(int n, int fs, int fe, int bs, int be, int fh, int fk, int bh, int bk) {
+    public static Pose playerPose(int b, int w, int n, int fs, int fe, int bs, int be, int fh, int fk, int bh, int bk) {
         HashMap<Theta, Double> m = new HashMap();
         m.put(Theta.NECK, Math.toRadians(n));
         m.put(Theta.FRONT_SHOULDER, Math.toRadians(fs));
@@ -57,24 +57,28 @@ public class Player extends Component {
         return new Pose(m);
     }
     public static Pose zero() {
-        return playerPose(0, 0, 0, 0, 0, 0, 0, 0, 0);
+        return playerPose(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
     public static Pose atRest() {
-        return playerPose(0, -35, 15, 30, -15, 30, -30, -30, 30);
+        return playerPose(0, 0, 0, -35, 15, 30, -15, 30, -30, -30, 30);
+    }
+    
+    public static Pose crouchRest() {
+        return playerPose(0, 0, 0, -35, 15, 30, -15, 30, -30, -30, 30);
     }
     
     public static Pose step1() {
         return atRest();
     }
     public static Pose step2() {
-        return playerPose(-5, 65, 35, -65, 35, -45, -35, 25, -35);
+        return playerPose(0, 0, -5, 65, 35, -65, 35, -45, -35, 25, -35);
     }
     public static Pose step3() {
-        return playerPose(0, -50, 25, 60, 35, 25, -30, -50, 30);
+        return playerPose(0, 0, 0, -50, 25, 60, 35, 25, -30, -50, 30);
     }
     
     public static Pose test() {
-        return playerPose(-22, 0, 1, 180, -1, 1, -1, -90, 0);
+        return playerPose(0, 0, -22, 0, 1, 180, -1, 1, -1, -90, 0);
     }
     
     public PoseChain walkChain() {
@@ -83,6 +87,10 @@ public class Player extends Component {
                     new PoseLink(50, atRest(), step2(), 500),
                     new PoseLink(50, atRest(), step3(), 500)
             );
+    }
+    
+    public Pose slide() {
+        return playerPose(90, 0, -15, 180, -90, 45, 0, 20, -15, -10, 15);
     }
     
     public PoseLink firePose() {
@@ -105,6 +113,13 @@ public class Player extends Component {
                     pose = atRest();
                     mainActionPose = null;
                     break;
+                case CROUCH:
+                    pose = crouchRest();
+                    mainActionPose = null;
+                    break;
+                case SLIDE:
+                    pose = slide();
+                    mainActionPose = null;
                 default:
                     // setChain(restPose);
                     break;
@@ -189,6 +204,23 @@ public class Player extends Component {
     public int friction() {
         return 0;
     }
+
+    @Override
+    public double frictionFactor() {
+        switch (status) {
+            case WALK:
+            case STAND:
+            case JUMP:
+            case FALL:
+            case SPRING:
+            default:
+                return 1;
+            case CROUCH:
+                return 2;
+            case SLIDE:
+                return 0;
+        }
+    }
     
     @Override
     public void standing(int actingFriction) {
@@ -259,6 +291,26 @@ public class Player extends Component {
                 break;
             case KeyEvent.VK_DOWN:
                 kb_down = comm.typed();
+                if (kb_down) {
+                    switch (status) {
+                        case WALK:
+                        case SPRING:
+                            setStatus(PlayerStatus.CROUCH);
+                            break;
+                        case STAND:
+                            setStatus(PlayerStatus.CROUCH);
+                            break;
+                    }
+                } else {
+                    switch (status) {
+                        case SLIDE:
+                            setStatus(PlayerStatus.WALK);
+                            break;
+                        case CROUCH:
+                            setStatus(PlayerStatus.STAND);
+                            break;
+                    }
+                }
                 break;
             case KeyEvent.VK_LEFT:
                 kb_left = comm.typed();

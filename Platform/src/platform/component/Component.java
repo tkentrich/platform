@@ -62,9 +62,9 @@ public abstract class Component extends Observable {
         if (actingFriction != 0) {
             int speedReduction;
             if (speed().x() > 0) {
-                speedReduction = -actingFriction * ms / 1000;
+                speedReduction = (int)(-actingFriction * frictionFactor() * ms / 1000);
             } else {
-                speedReduction = actingFriction * ms / 1000;
+                speedReduction = (int)( actingFriction * frictionFactor() * ms / 1000);
             }
             if (Math.abs(speedReduction) > Math.abs(speed().x())) {
                 speedReduction = -speed().x();
@@ -108,6 +108,7 @@ public abstract class Component extends Observable {
     public abstract BufferedImage image();
     public abstract int weight();
     public abstract int friction();
+    public abstract double frictionFactor();
     public abstract ArrayList<CollisionResult> collide(Component c, CollisionType type);
 
     protected static Polygon polygon(Dimension start, Dimension... delta) {

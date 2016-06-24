@@ -24,5 +24,8 @@ public abstract class Terrain extends Component {
     public ArrayList<CollisionResult> collide(Component c, CollisionType type) { 
         return null;
     }
+    public double frictionFactor() {
+        return 1;
+    }
     public abstract ArrayList<WalkModifier> walkModifiers();
 }

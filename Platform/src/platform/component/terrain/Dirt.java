@@ -4,6 +4,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import platform.Dimension;
 import platform.Platform;
@@ -14,15 +16,16 @@ import platform.Platform;
  */
 public class Dirt extends Terrain {
 
-    enum DirtType {
-        A, B, C
-    };
-    private DirtType dt;
-    public static HashMap<DirtType, BufferedImage> images;
+    //enum DirtType {
+    //    A, B, C
+    //};
+    // private DirtType dt;
+    //public static HashMap<DirtType, BufferedImage> images;
+    public static BufferedImage image;
     
     public Dirt(Dimension position) {
         super(position);
-        int rnd = (int)(Math.random() * 3);
+        /*int rnd = (int)(Math.random() * 3);
         switch (rnd) {
             default:
             case 0:
@@ -34,24 +37,29 @@ public class Dirt extends Terrain {
             case 2:
                 dt = DirtType.C;
                 break;
-        }
+        }*/
     }
     
-    public Dirt(Dimension position, DirtType dt) {    
+    /*public Dirt(Dimension position, DirtType dt) {    
         super(position);
         this.dt = dt;
-    }
+    }*/
     
     public static void initImages() {
-        if (images == null) {
-            images = new HashMap();
+        if (image == null) {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             try {
-                images.put(DirtType.A, ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Dirt-A.png")));
-                images.put(DirtType.B, ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Dirt-B.png")));
-                images.put(DirtType.C, ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Dirt-C.png")));
+                image = ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Photos/Rocks.jpg"));
             } catch (IOException ex) {
+                Logger.getLogger(Dirt.class.getName()).log(Level.SEVERE, null, ex);
             }
+            /*images = new HashMap();
+            try {
+            images.put(DirtType.A, ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Dirt-A.png")));
+            images.put(DirtType.B, ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Dirt-B.png")));
+            images.put(DirtType.C, ImageIO.read(classLoader.getResourceAsStream("Resources/Graphics/Terrain/Dirt-C.png")));
+            } catch (IOException ex) {
+            }*/
         }
     }
     
@@ -67,10 +75,10 @@ public class Dirt extends Terrain {
     
     @Override
     public BufferedImage image() {
-        if (images == null) {
+        if (image == null) {
             initImages();
         }
-        return images.get(dt);
+        return image.getSubimage(position().x(), position().y(), size().x(), size().y());
     }
 
     @Override

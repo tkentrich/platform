@@ -49,7 +49,6 @@ public class PoseLink extends PoseChange {
         for (Theta t : targetPose.keySet()) {
             if (time > 0) {
                 delta.put(t, (targetPose.theta(t) - current.theta(t)) / time);
-                System.out.printf("Reset delta for %s to %1.2f (%1.2f - %1.2f) / %d %n", t, Math.toDegrees(delta.get(t)), targetPose.theta(t), current.theta(t), time);
             } else {
                 delta.put(t, 0.0);
             }
