@@ -90,4 +90,9 @@ public class Coin extends Collectible {
     public int friction() {
         return 0;
     }
+
+    @Override
+    public double frictionFactor() {
+        return 1;
+    }
 }

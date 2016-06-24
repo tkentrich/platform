@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 import platform.component.Player;
-import platform.component.Player.Pose;
-import platform.component.Player.Theta;
+import platform.component.Pose;
+import platform.component.Pose.Theta;
 
 /**
  *
@@ -33,11 +33,8 @@ public class PoseScene extends Observable implements Observer {
         return theta;
     }
     
-    public void adjust(int delta) {
-        editing.pose().millis += delta;
-    }
     public void adjust(double delta) {
-        editing.pose().adjustTheta(theta, delta);
+        editing.pose().adjust(theta, delta);
     }
     
     public void nextAngle() {
@@ -82,7 +79,6 @@ public class PoseScene extends Observable implements Observer {
         for (Pose p : chain) {
             newChain.add(new Pose(p));
         }
-        display.setChain(newChain);
     }
     public void move(int ms) {
         display.move(ms);

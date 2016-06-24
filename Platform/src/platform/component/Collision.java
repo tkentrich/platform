@@ -85,9 +85,9 @@ public class Collision {
                     coll = CollisionType.PRE;
                     break;
                 default:
-                    System.out.printf("Other type: %s%n %s %s %s %s %s%n", coll.name(), a.info(), b.info(), before, after, after & ~before);
+                    /*System.out.printf("Other type: %s%n %s %s %s %s %s%n", coll.name(), a.info(), b.info(), before, after, after & ~before);
                     System.out.println("  " + aBef1 + "," + aBef2 + " -> " + aAft1 + "," + aAft2);
-                    System.out.println("  " + bBef1 + "," + bBef2 + " -> " + bAft1 + "," + bAft2);
+                    System.out.println("  " + bBef1 + "," + bBef2 + " -> " + bAft1 + "," + bAft2);*/
                     // MORE THAN ONE?
             }
         }
