@@ -2,6 +2,7 @@ package platform.component;
 
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Observable;
@@ -136,5 +137,20 @@ public abstract class Component extends Observable {
             di++;
         }
         return new Polygon(xpoints, ypoints, points);
+    }
+    protected static void polygon(Graphics2D g, Dimension start, int... delta) {
+        g.fillPolygon(polygon(start, delta));
+    }
+    protected static void rectangle(Graphics2D g, Dimension start, Dimension size) {
+        g.fillRect(start.x(), start.y(), start.plus(size).x(), start.plus(size).y());
+    }
+    protected static void rectangle(Graphics2D g, Dimension start, int width, int height) {
+        g.fillRect(start.x(), start.y(), width, height);
+    }
+    protected static void rectangle(Graphics2D g, int x, int y, int width, int height) {
+        g.fillRect(x, y, width, height);
+    }
+    protected static void circle(Graphics2D g, Dimension origin, int radius) {
+        g.fillOval(origin.x() - radius, origin.y() - radius, 2 * radius, 2 * radius);
     }
 }

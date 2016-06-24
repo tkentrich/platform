@@ -413,25 +413,31 @@ public class Player extends Component {
 
                 // Back arm
                 g = (Graphics2D) g_orig.create();
-                g.setColor(armColor());
+                g.setColor(color(1));
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_SHOULDER), shoulder.x(), shoulder.y()));
-                g.fillPolygon(polygon(shoulder.plus(-small, med), small, med, small, -med));
+                rectangle(g, shoulder.plus(-small, 0), med, 2 * med);
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_ELBOW), elbow.x(), elbow.y()));
-                g.fillPolygon(polygon(elbow.plus(-small, 0), small, med, small, -med));
+                rectangle(g, elbow.plus(-small, 0), med, med);
+                g.setColor(color(2));
+                circle(g, elbow, small);
+                circle(g, elbow.plus(0, med), small);
                 g.dispose();
 
                 // Back leg
                 g = (Graphics2D) g_orig.create();
-                g.setColor(legColor());
+                g.setColor(color(1));
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_HIP), midpoint.x(), midpoint.y()));
-                g.fillPolygon(polygon(midpoint.plus(-small, big + small), med, 0, -small, med));
+                rectangle(g, midpoint.plus(-small, 2 * med), med, med + small);
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_KNEE), knee.x(), knee.y()));
-                g.fillPolygon(polygon(knee.plus(-small, 0), med, 0, -small, med));
+                rectangle(g, knee.plus(-small, 0), med, med);
+                g.setColor(color(2));
+                circle(g, knee, small);
+                circle(g, knee.plus(0, med), small);
                 g.dispose();
 
                 // Torso
                 g = (Graphics2D) g_orig.create();
-                g.setColor(torsoColor());
+                g.setColor(color(1));
                 g.fillPolygon(polygon(midpoint, chestSize, chestSize.times(-1, 1)));
                 g.fillPolygon(polygon(midpoint, chestSize.times(-1), chestSize.times(1, -1)));
 
@@ -439,14 +445,12 @@ public class Player extends Component {
                 g.fillPolygon(polygon(neckStart, neckSize, neckSize.times(-1, 1)));
 
                 // Head
-                g.setColor(headColor());
+                g.setColor(color(3));
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.NECK), neckStart.x(), neckStart.y()));
                 g.fillPolygon(polygon(neckStart.plus(-med, 0), big, 0, -big, tiny)); // mask
                 g.fillPolygon(polygon(neckStart.plus(-med, 0), 0, -big, small, 0)); // hood front
                 g.fillPolygon(polygon(neckStart.plus(med, 0), tiny, -big, -small, 0)); // hood back
                 g.fillPolygon(polygon(neckStart.plus(-big), big, -big, big, big)); // cap
-                // g.setColor(featherColor(1));
-                // g.fillPolygon(polygon(neckStart.plus(0, -big*2), big, -med, 0, med)); // feather 0
                 g.setColor(featherColor(1));
                 g.fillPolygon(polygon(neckStart.plus(big / 2, -big * 3 / 2), big, -med, 0, med)); // feather 1
                 g.setColor(featherColor(2));
@@ -457,20 +461,26 @@ public class Player extends Component {
 
                 // Front arm
                 g = (Graphics2D) g_orig.create();
-                g.setColor(armColor());
+                g.setColor(color(1));
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.FRONT_SHOULDER), shoulder.x(), shoulder.y()));
-                g.fillPolygon(polygon(shoulder.plus(-small, med), small, med, small, -med));
+                rectangle(g, shoulder.plus(-small, 0), med, 2 * med);
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.FRONT_ELBOW), elbow.x(), elbow.y()));
-                g.fillPolygon(polygon(elbow.plus(-small, 0), small, med, small, -med));
+                rectangle(g, elbow.plus(-small, 0), med, med);
+                g.setColor(color(2));
+                circle(g, elbow, small);
+                circle(g, elbow.plus(0, med), small);
                 g.dispose();
 
                 // Front leg
                 g = (Graphics2D) g_orig.create();
-                g.setColor(legColor());
+                g.setColor(color(1));
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.FRONT_HIP), midpoint.x(), midpoint.y()));
-                g.fillPolygon(polygon(midpoint.plus(-small, big + small), med, 0, -small, med));
+                rectangle(g, midpoint.plus(-small, 2 * med), med, med + small);
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.FRONT_KNEE), knee.x(), knee.y()));
-                g.fillPolygon(polygon(midpoint.plus(-small, big + med + small), med, 0, -small, med));
+                rectangle(g, knee.plus(-small, 0), med, med);
+                g.setColor(color(2));
+                circle(g, knee, small);
+                circle(g, knee.plus(0, med), small);
                 g.dispose();
 
                 // Bounding rectangle
@@ -509,7 +519,18 @@ public class Player extends Component {
         return 300;
     }
     
-    private Color armColor() {
+    private Color color(int number) {
+        switch (number) {
+            case 1:
+            default:
+                return Color.BLUE;
+            case 2:
+                return Color.RED;
+            case 3:
+                return Color.WHITE;
+        }
+    }
+    /*private Color armColor() {
         return Color.BLUE;
     }
     private Color legColor() {
@@ -520,7 +541,7 @@ public class Player extends Component {
     }
     private Color headColor() {
         return Color.DARK_GRAY;
-    }
+    }*/
     private Color featherColor(int i) {
         switch (i) {
             case 1:
