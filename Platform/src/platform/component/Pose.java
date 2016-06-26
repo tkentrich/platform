@@ -32,6 +32,13 @@ public class Pose {
         return theta.get(t);
     }
     public void adjust(Theta t, double delta) {
+        double newAngle = theta.get(t) + delta;
+        if (newAngle < 0) {
+            newAngle += Math.PI * 2;
+        }
+        if (newAngle > Math.PI * 2) {
+            newAngle -= Math.PI * 2;
+        }
         theta.put(t, theta.get(t) + delta);
     }
     public void set(Theta t, double angle) {
@@ -41,9 +48,40 @@ public class Pose {
     public void adjust(int ms, PoseChange ch) {
         if (ch.active()) {
             for (Theta t : ch.keySet()) {
-                adjust(t, ch.delta(t));
+                adjust(t, ch.delta(t) * ms);
             }
             ch.advance(ms);
+        }
+    }
+    
+    public void adjust(int ms, PoseChange primary, PoseChange secondary) {
+        if (primary == null && secondary != null) {
+            adjust(ms, secondary);
+            return;
+        }
+        if (primary != null && secondary == null) {
+            adjust(ms, primary);
+            return;
+        }
+        if (primary == null && secondary == null) {
+            return;
+        }
+        
+        HashMap<Theta, Double> delta = new HashMap();
+        primary.advance(ms);
+        for (Theta t : primary.keySet()) {
+            delta.put(t, primary.active() ? primary.delta(t) : Double.NaN);
+        }
+        secondary.advance(ms);
+        for (Theta t : secondary.keySet()) {
+            delta.put(t, secondary.active() ? secondary.delta(t) : Double.NaN);
+        }
+        for (Theta t : delta.keySet()) {
+            if (delta.get(t) != Double.NaN) {
+                adjust(t, delta.get(t) * ms);
+            } else {
+                set(t, secondary != null && secondary.keySet().contains(t) ? secondary.target(t) : primary.target(t));
+            }
         }
     }
     

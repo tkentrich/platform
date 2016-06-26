@@ -12,6 +12,8 @@ import javax.imageio.ImageIO;
 import platform.Dimension;
 import platform.Platform;
 import platform.PlayerCommand;
+import platform.collectible.Collect;
+import platform.collectible.Collectible;
 import platform.component.Pose.Theta;
 
 /**
@@ -31,8 +33,8 @@ public class Player extends Component {
     private SecondaryAction secondaryAction;
     
     private int jumpsRemaining;
-    private int jumpForceRemaining;
-    private int crouchTimeRemaining;
+    private int jumpTimeRemaining;
+    private int springTimeRemaining;
     
     private PoseChange mainActionPose;
     private PoseChange secondaryActionPose;
@@ -77,6 +79,19 @@ public class Player extends Component {
         return playerPose(0, 0, 0, -50, 25, 60, 35, 25, -30, -50, 30);
     }
     
+    public static Pose spring1() {
+        return playerPose(0, 0, -10, -40, 10, -50, 10, -35, 20, -20, 20);
+    }
+    public static Pose spring2() {
+        return playerPose(0, 0, 0, -70, 45, -80, 45, -35, 0, -20, 0);
+    }
+    
+    public PoseLink jumpPose() {
+        return new PoseLink(50, pose, playerPose(
+                0, 0, 10, 105, 30, -120, 0, 20, 0, -20, 0
+        ), 100);
+    }
+    
     public static Pose test() {
         return playerPose(0, 0, -22, 0, 1, 180, -1, 1, -1, -90, 0);
     }
@@ -86,6 +101,13 @@ public class Player extends Component {
                     new PoseLink(50, atRest(), atRest(), 5), 
                     new PoseLink(50, atRest(), step2(), 500),
                     new PoseLink(50, atRest(), step3(), 500)
+            );
+    }
+    
+    public PoseChain springPose() {
+        return new PoseChain(-1,
+                    new PoseLink(50, pose, spring1(), 50),
+                    new PoseLink(50, pose, spring2(), springTime() - 50)
             );
     }
     
@@ -120,8 +142,20 @@ public class Player extends Component {
                 case SLIDE:
                     pose = slide();
                     mainActionPose = null;
+                    break;
+                case SPRING:
+                    mainActionPose = springPose();
+                    springTimeRemaining = springTime();
+                    break;
+                case JUMP:
+                    setAction(MainAction.JUMP);
+                    jumpTimeRemaining = jumpTime();
+                    speed().setY(-jumpSpeed());
+                    jumpsRemaining--;
+                    break;
                 default:
-                    // setChain(restPose);
+                    mainActionPose = null;
+                    pose = atRest();
                     break;
             }
         }
@@ -144,6 +178,7 @@ public class Player extends Component {
             // case CROUCH:
             //    break;
             case JUMP:
+                mainActionPose = jumpPose();
                 break;
         }
     }
@@ -192,12 +227,22 @@ public class Player extends Component {
 
     @Override
     public int weight() {
-        return 100;
+        switch (status) {
+            default:
+                return 100;
+            case JUMP:
+                return 0;
+        }
     }
 
     @Override
     public ArrayList<CollisionResult> collide(Component c, Collision.CollisionType type) {
-        return null;
+         ArrayList<CollisionResult> toReturn = new ArrayList();
+         if (c instanceof Collectible) {
+             toReturn.addAll(((Collectible)c).collect());
+             toReturn.add(new Collect((Collectible) c));
+         }
+         return toReturn;
     }
     
     @Override
@@ -236,7 +281,6 @@ public class Player extends Component {
     }
     public void playerStanding() {
         jumpsRemaining = numberOfJumps();
-        jumpForceRemaining = jumpForce();
         switch(status) {
             default:
             case STAND:
@@ -244,7 +288,18 @@ public class Player extends Component {
                 break;
             case JUMP:
             case FALL:
-                setStatus(kb_right || kb_left ? PlayerStatus.STAND : PlayerStatus.WALK);
+                setStatus(kb_right || kb_left ? PlayerStatus.WALK : PlayerStatus.STAND);
+        }
+    }
+    
+    public void checkedStanding() {
+        if (!standing()) {
+            switch (status) {
+                default:
+                    setStatus(PlayerStatus.FALL);
+                    break;
+                case JUMP:
+            }
         }
     }
     
@@ -256,13 +311,18 @@ public class Player extends Component {
     public void move(int ms) {
         super.move(ms);
         switch (status) {
-            case CROUCH:
-                crouchTimeRemaining -= ms;
-                if (crouchTimeRemaining <= 0) {
+            case SPRING:
+                springTimeRemaining -= ms;
+                if (springTimeRemaining <= 0 && jumpsRemaining > 0) {
                     setStatus(PlayerStatus.JUMP);
                 }
                 break;
             case JUMP:
+                speed().setY(-jumpSpeed());
+                jumpTimeRemaining -= ms;
+                if (jumpTimeRemaining <= 0) {
+                    setStatus(PlayerStatus.FALL);
+                }
                 break;
         }
         pose.adjust(ms, mainActionPose, secondaryActionPose);
@@ -340,21 +400,6 @@ public class Player extends Component {
                 break;
             case KeyEvent.VK_SPACE:
                 kb_jump = comm.typed();
-                if (kb_jump && speed().y() == 0) {
-                    switch (status) {
-                        case WALK:
-                        case STAND:
-                            setStatus(PlayerStatus.CROUCH);
-                            crouchTimeRemaining = crouchTime();
-                            break;
-                        case CROUCH:
-                            setStatus(PlayerStatus.STAND);
-                            break;
-                        case JUMP:
-                            setStatus(PlayerStatus.FALL);
-                            break;
-                    }
-                }
                 break;
             case KeyEvent.VK_ALT:
                 // ???
@@ -375,6 +420,23 @@ public class Player extends Component {
             if (speed().x() > walkSpeed()) {
                 speed().setX((orig_speed > walkSpeed()) ? orig_speed : walkSpeed());
             }
+        }
+        if (kb_jump) {
+            switch (status) {
+                case STAND:
+                case WALK:
+                    setStatus(PlayerStatus.SPRING);
+                    break;
+                case FALL:
+                    if (jumpsRemaining > 0) {
+                        setStatus(PlayerStatus.JUMP);
+                    }
+                    break;
+            }
+        } else if (status == PlayerStatus.JUMP) {
+            setStatus(PlayerStatus.FALL);
+        } else if (status == PlayerStatus.SPRING) {
+            setStatus(kb_left || kb_right ? PlayerStatus.WALK : PlayerStatus.STAND);
         }
     }
     
@@ -457,6 +519,8 @@ public class Player extends Component {
                 g.fillPolygon(polygon(neckStart.plus(big, -big), big, -med, 0, med)); // feather 2
                 g.setColor(eyeColor());
                 g.fillPolygon(polygon(neckStart.plus(0, -med), small, -tiny, -small, 0));
+                // g.drawString(status.name() + " Jump: " + jumpTimeRemaining, neckStart.x() - big, neckStart.y() - big * 3);
+                g.drawString(status.name() + " " + mainActionPose, neckStart.x() - big, neckStart.y() - big * 3);
                 g.dispose();
 
                 // Front arm
@@ -482,15 +546,7 @@ public class Player extends Component {
                 circle(g, knee, small);
                 circle(g, knee.plus(0, med), small);
                 g.dispose();
-
-                // Bounding rectangle
-                g = (Graphics2D) g_orig.create();
-                g.setColor(Color.WHITE);
-                g.drawRect(position().x(), position().y(), size().x(), size().y());
-                g.dispose();
                 
-            case FALL:
-            case JUMP:
         }
         
         // Info
@@ -506,8 +562,11 @@ public class Player extends Component {
     private int numberOfJumps() {
         return 1;
     }
-    private int jumpForce() {
-        return Platform.blockSize.y() * 3 * weight();
+    private int jumpTime() {
+        return 500;
+    }
+    private int jumpSpeed() {
+        return Platform.blockSize.y() * 5;
     }
     private int walkForce() {
         return Platform.blockSize.x() * weight();
@@ -515,7 +574,7 @@ public class Player extends Component {
     private int walkSpeed() {
         return Platform.blockSize.x() * (kb_run ? 8 : 4);
     }
-    private int crouchTime() {
+    private int springTime() {
         return 300;
     }
     
@@ -564,6 +623,11 @@ public class Player extends Component {
         }
         return images.get("Default");
     }    
+    
+    public PlayerStatus status() {
+        return status;
+    }
+    
     public static void initImages() {
         if (images == null) {
             images = new HashMap();

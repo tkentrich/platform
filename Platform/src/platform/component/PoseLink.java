@@ -29,6 +29,10 @@ public class PoseLink extends PoseChange {
         return new Pose(targetPose);
     }
     
+    public double target(Theta t) {
+        return targetPose.theta(t);
+    }
+    
     @Override
     public int priority() {
         return priority;
@@ -67,5 +71,10 @@ public class PoseLink extends PoseChange {
     
     public void reset() {
         time = totalTime;
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("Link: %d/%d", time, totalTime);
     }
 }

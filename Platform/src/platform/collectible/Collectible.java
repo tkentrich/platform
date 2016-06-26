@@ -18,6 +18,6 @@ public abstract class Collectible extends Component {
     public abstract ArrayList<CollectResult> collect();
     @Override
     public ArrayList<CollisionResult> collide(Component c, Collision.CollisionType type) {
-        return null;
+        return new ArrayList();
     }
 }

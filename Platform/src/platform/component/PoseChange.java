@@ -14,4 +14,7 @@ public abstract class PoseChange {
     public abstract void resetDeltas(Pose current);
     public abstract Set<Theta> keySet();
     public abstract double delta(Theta t);
+    public abstract double target(Theta t);
+    @Override
+    public abstract String toString();
 }

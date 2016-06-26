@@ -11,7 +11,11 @@ import platform.component.Component;
 import platform.component.Player;
 import platform.component.terrain.Terrain;
 import static platform.Platform.debug;
+import platform.collectible.Collect;
+import platform.collectible.ScoreChange;
 import platform.component.ActionComplete;
+import platform.component.CollisionResult;
+import platform.component.Player.PlayerStatus;
 
 /**
  *
@@ -23,9 +27,11 @@ public class Area extends Observable implements Observer {
     private HashMap<String, Space> space;
     private Player player;
     private boolean initialized;
+    private Platform game;
     
-    public Area(Dimension size) {
+    public Area(Dimension size, Platform game) {
         this.size = size;
+        this.game = game;
         components = new ArrayList();
         initialized = false;
     }
@@ -107,7 +113,7 @@ public class Area extends Observable implements Observer {
             for (Component c : s.components()) {
                 if (!(c.speed().y() < 0 || c instanceof Terrain)) { // Skip if component is rising or Terrain
                     for (Component c2 : s.components()) {
-                        if (!(checked.contains(String.format("%s:%s", c, c2)) || c.equals(c2))) {
+                        if (!(c2.passable() || checked.contains(String.format("%s:%s", c, c2)) || c.equals(c2))) {
                             checked.add(String.format("%s:%s", c, c2));
                             int above = Math.abs(c2.position().y() - c.position().plus(c.size()).y());
                             int rightOf = c.position().x() - c2.position().plus(c2.size()).x();
@@ -120,12 +126,11 @@ public class Area extends Observable implements Observer {
                             }
                         }
                     }
-                } else {
-                    // System.out.println(c + " is rising, not checking standing");
                 }
             }
         }
         
+        player.checkedStanding();
     }
     
     public void moveAll(int ms) {
@@ -163,6 +168,7 @@ public class Area extends Observable implements Observer {
                 }
             }
         }
+        ArrayList<CollisionResult> results = new ArrayList();
         for (Collision coll : collisions) {
             // System.out.printf(" Collision between %s and %s direction %s %n", coll.comp1(), coll.comp2(), coll.type().name());
             if (!coll.comp2().passable()) {
@@ -189,8 +195,17 @@ public class Area extends Observable implements Observer {
                     System.out.printf("  After collision: %s %n", coll.comp1().info());
                 }
             }
-            coll.comp1().collide(coll.comp2(), coll.type());
-            coll.comp2().collide(coll.comp1(), coll.type());
+            results.addAll(coll.comp1().collide(coll.comp2(), coll.type()));
+            results.addAll(coll.comp2().collide(coll.comp1(), coll.type()));
+        }
+        for (CollisionResult cr : results) {
+            if (cr instanceof Collect) {
+                components.remove(((Collect)cr).collectible());
+            } else if (cr instanceof ScoreChange) {
+                game.increaseScore(((ScoreChange)cr).increase());
+            } else {
+                System.out.println("Unknown CollectionResult!" + cr);
+            }
         }
         setChanged();
         notifyObservers();
@@ -209,4 +224,10 @@ public class Area extends Observable implements Observer {
         }
     }
     
+    public int score() {
+        return game.score();
+    }
+    public int lives() {
+        return game.lives();
+    }
 }

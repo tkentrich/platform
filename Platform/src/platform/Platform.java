@@ -9,6 +9,7 @@ import static platform.Platform.blockSize;
 import platform.area.Area;
 import platform.area.AreaException;
 import platform.collectible.Coin;
+import platform.collectible.ScoreChange;
 import platform.component.Player;
 import platform.component.terrain.Dirt;
 
@@ -26,6 +27,9 @@ public class Platform implements Observer {
     private PoseScene scene;
     public static boolean debug;
     public static Dimension screenSize;
+    
+    private int score;
+    private int lives;
     
     enum GameMode {NORMAL, POSE};
     private GameMode mode;
@@ -47,7 +51,7 @@ public class Platform implements Observer {
         screenSize = new Dimension(w.getWidth(), w.getHeight());
         Dimension levelSize = new Dimension(4000, 1600);
         
-        currentArea = new Area(levelSize);
+        currentArea = new Area(levelSize, this);
         currentArea.addObserver(this);
         scene = new PoseScene();
         scene.addObserver(this);
@@ -76,12 +80,12 @@ public class Platform implements Observer {
             Logger.getLogger(Platform.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        int msperframe = 1000/9;
+        int msperframe = 1000/60;
         while (true) {
             long startTime = System.currentTimeMillis();
             switch (mode) {
                 case NORMAL:
-                    currentArea.moveAll(msperframe);
+                    currentArea.moveAll(msperframe * 3 / 2);
                     break;
                 case POSE:
                     scene.move(msperframe);
@@ -181,6 +185,9 @@ public class Platform implements Observer {
                         }
                         break;
                 }
+            } else if (arg instanceof ScoreChange) {
+                System.out.println("Score update: "); 
+                score += ((ScoreChange)arg).increase();
             }
         }
         switch (mode) {
@@ -192,5 +199,16 @@ public class Platform implements Observer {
                 break;
         }    
     }
-        
+    
+    public int score() {
+        return score;
+    }
+    
+    public int lives() {
+        return lives;
+    }
+    
+    public void increaseScore(int increase) {
+        score += increase;
+    }
 }

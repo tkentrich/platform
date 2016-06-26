@@ -131,9 +131,15 @@ public class CanvasViewer extends Canvas {
                 }
                 
                 for (Component c : comps) {
-                    // g.drawImage(c.image(), c.position().minus(start).x(), c.position().minus(start).y(), c.size().x(), c.size().y(), null);
                     c.display(g, start);
                 }
+                
+                String strScore = String.format("SCORE %06d", a.score());
+                g.setColor(Color.BLACK);
+                g.drawString(strScore, 22, 22);
+                
+                g.setColor(Color.WHITE);
+                g.drawString(strScore, 20, 20);
                 
                 g.dispose();
                 strategy.show();

@@ -22,7 +22,7 @@ public abstract class Terrain extends Component {
         return 0;
     }
     public ArrayList<CollisionResult> collide(Component c, CollisionType type) { 
-        return null;
+        return new ArrayList();
     }
     public double frictionFactor() {
         return 1;

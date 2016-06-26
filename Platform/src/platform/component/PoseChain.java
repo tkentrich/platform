@@ -53,7 +53,9 @@ public class PoseChain extends PoseChange {
             if (chainIndex >= chain.size()) {
                 chainIndex = resetLink;
             }
-            chain.get(chainIndex).resetDeltas(ending);
+            if (chainIndex > -1) {
+                chain.get(chainIndex).resetDeltas(ending);
+            }
         }
     }
 
@@ -71,5 +73,14 @@ public class PoseChain extends PoseChange {
     public double delta(Pose.Theta t) {
         return chain.get(chainIndex).delta(t);
     }
+
+    @Override
+    public double target(Pose.Theta t) {
+        return chain.get(chain.size()-1).target(t);
+    }
     
+    @Override
+    public String toString() {
+        return String.format("Chain (%d/%d) :%s", chainIndex + 1, chain.size(), chain.get(chainIndex).toString());
+    }
 }
