@@ -16,6 +16,7 @@ import platform.collectible.ScoreChange;
 import platform.component.ActionComplete;
 import platform.component.CollisionResult;
 import platform.component.Player.PlayerStatus;
+import platform.component.shot.Shot;
 
 /**
  *
@@ -24,6 +25,7 @@ import platform.component.Player.PlayerStatus;
 public class Area extends Observable implements Observer {
     private Dimension size;
     private ArrayList<Component> components;
+    private ArrayList<Component> toAdd;
     private HashMap<String, Space> space;
     private Player player;
     private boolean initialized;
@@ -33,6 +35,7 @@ public class Area extends Observable implements Observer {
         this.size = size;
         this.game = game;
         components = new ArrayList();
+        toAdd = new ArrayList();
         initialized = false;
     }
         
@@ -43,6 +46,7 @@ public class Area extends Observable implements Observer {
         components.add(c);
         if (c instanceof Player) {
             player = (Player)c;
+            player.addObserver(this);
         }
     }
     public Player player() {
@@ -207,6 +211,8 @@ public class Area extends Observable implements Observer {
                 System.out.println("Unknown CollectionResult!" + cr);
             }
         }
+        components.addAll(toAdd);
+        toAdd.clear();
         setChanged();
         notifyObservers();
     }
@@ -215,7 +221,9 @@ public class Area extends Observable implements Observer {
     public void update(Observable o, Object arg) {
         if (o instanceof Player) {
             Player p = (Player)o;
-            if (arg != null && arg instanceof ActionComplete) {
+            if (arg != null && arg instanceof Shot) {
+                toAdd.add((Shot)arg);
+            } else if (arg != null && arg instanceof ActionComplete) {
                 switch (((ActionComplete)arg).action()) {
                     case FIRE:
                         // TODO: Fire Gun

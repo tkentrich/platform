@@ -15,12 +15,13 @@ import platform.PlayerCommand;
 import platform.collectible.Collect;
 import platform.collectible.Collectible;
 import platform.component.Pose.Theta;
+import platform.component.shot.StandardShot;
 
 /**
  *
  * @author richkent
  */
-public class Player extends Component {
+public class Player extends LivingComponent {
 
     public enum PlayerStatus { STAND, WALK, JUMP, FALL, SPRING, CROUCH, SLIDE };
     public enum PlayerFacing { LEFT, RIGHT };
@@ -86,10 +87,19 @@ public class Player extends Component {
         return playerPose(0, 0, 0, -70, 45, -80, 45, -35, 0, -20, 0);
     }
     
-    public PoseLink jumpPose() {
-        return new PoseLink(50, pose, playerPose(
-                0, 0, 10, 105, 30, -120, 0, 20, 0, -20, 0
-        ), 100);
+    public static Pose jump1() {
+        return playerPose(0, 0, 10, 105, 30, -120, 0, 20, 0, -20, 0);
+    }
+    public static Pose jump2() {
+        return playerPose(0, 0, 0, 120, 20, -105, -20, 10, -10, -10, 10);
+    }
+    
+    public PoseChain jumpPose() {
+        return new PoseChain(-1,
+                new PoseLink(50, pose, jump1(), 50),
+                new PoseLink(50, pose, jump2(), 50)
+            );
+        // return new PoseLink(50, pose, jump1(), 50);
     }
     
     public static Pose test() {
@@ -287,6 +297,7 @@ public class Player extends Component {
             case WALK:
                 break;
             case JUMP:
+                break;
             case FALL:
                 setStatus(kb_right || kb_left ? PlayerStatus.WALK : PlayerStatus.STAND);
         }
@@ -325,6 +336,7 @@ public class Player extends Component {
                 }
                 break;
         }
+        
         pose.adjust(ms, mainActionPose, secondaryActionPose);
         if (mainActionPose != null && !mainActionPose.active()) {
             switch (mainAction) {
@@ -337,8 +349,12 @@ public class Player extends Component {
         if (secondaryActionPose != null && !secondaryActionPose.active()) {
             switch (secondaryAction) {
                 case FIRE:
-                    
                     secondaryActionPose = null;
+                    setChanged();
+                    Dimension shPos = position().plus(size().dividedBy(2));
+                    shPos.add(size().plus(StandardShot.shotSize()).dividedBy(2).x() * (facing == PlayerFacing.LEFT ? -1 : 1), 0);
+                    notifyObservers(new StandardShot(shPos, speed().plus(StandardShot.fireSpeed * (facing == PlayerFacing.LEFT ? -1 : 1), 0)));
+                    break;
             }
             
         }
@@ -437,6 +453,9 @@ public class Player extends Component {
             setStatus(PlayerStatus.FALL);
         } else if (status == PlayerStatus.SPRING) {
             setStatus(kb_left || kb_right ? PlayerStatus.WALK : PlayerStatus.STAND);
+        }
+        if (kb_fire && secondaryAction == SecondaryAction.NONE) {
+            setAction(SecondaryAction.FIRE);
         }
     }
     
@@ -566,7 +585,7 @@ public class Player extends Component {
         return 500;
     }
     private int jumpSpeed() {
-        return Platform.blockSize.y() * 5;
+        return Platform.blockSize.y() * 6;
     }
     private int walkForce() {
         return Platform.blockSize.x() * weight();
