@@ -299,7 +299,7 @@ public class Player extends LivingComponent {
             case JUMP:
                 break;
             case FALL:
-                setStatus(kb_right || kb_left ? PlayerStatus.WALK : PlayerStatus.STAND);
+                setStatus(kb_down ? PlayerStatus.CROUCH : (kb_right || kb_left ? PlayerStatus.WALK : PlayerStatus.STAND));
         }
     }
     
@@ -349,7 +349,7 @@ public class Player extends LivingComponent {
         if (secondaryActionPose != null && !secondaryActionPose.active()) {
             switch (secondaryAction) {
                 case FIRE:
-                    secondaryActionPose = null;
+                    setAction(SecondaryAction.NONE);
                     setChanged();
                     Dimension shPos = position().plus(size().dividedBy(2));
                     shPos.add(size().plus(StandardShot.shotSize()).dividedBy(2).x() * (facing == PlayerFacing.LEFT ? -1 : 1), 0);
@@ -462,7 +462,7 @@ public class Player extends LivingComponent {
     
     private Dimension middle, chestSize, neckSize;
     private int big, med, small, tiny;
-    private Dimension neckStart, shoulder, elbow, knee;
+    private Dimension midpoint, neckStart, shoulder, elbow, knee;
 
     @Override
     public void display(Graphics2D g_start, Dimension start) {
@@ -475,7 +475,7 @@ public class Player extends LivingComponent {
         small = big / 4;
         tiny = big / 6;
         
-        Dimension midpoint = new Dimension(0); //middle;//.plus(0, med);
+        midpoint = new Dimension(0); //middle;//.plus(0, med);
         neckStart = midpoint.plus(chestSize.plus(neckSize).times(0, -1));
         shoulder = midpoint.minus(0, med);
         elbow = shoulder.plus(0, med * 2);
@@ -498,28 +498,10 @@ public class Player extends LivingComponent {
                 }
 
                 // Back arm
-                g = (Graphics2D) g_orig.create();
-                g.setColor(color(1));
-                g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_SHOULDER), shoulder.x(), shoulder.y()));
-                rectangle(g, shoulder.plus(-small, 0), med, 2 * med);
-                g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_ELBOW), elbow.x(), elbow.y()));
-                rectangle(g, elbow.plus(-small, 0), med, med);
-                g.setColor(color(2));
-                circle(g, elbow, small);
-                circle(g, elbow.plus(0, med), small);
-                g.dispose();
-
+                arm(g_orig, pose.theta(Theta.BACK_SHOULDER), pose.theta(Theta.BACK_ELBOW));
+                
                 // Back leg
-                g = (Graphics2D) g_orig.create();
-                g.setColor(color(1));
-                g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_HIP), midpoint.x(), midpoint.y()));
-                rectangle(g, midpoint.plus(-small, 2 * med), med, med + small);
-                g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.BACK_KNEE), knee.x(), knee.y()));
-                rectangle(g, knee.plus(-small, 0), med, med);
-                g.setColor(color(2));
-                circle(g, knee, small);
-                circle(g, knee.plus(0, med), small);
-                g.dispose();
+                leg(g_orig, pose.theta(Theta.BACK_HIP), pose.theta(Theta.BACK_KNEE));
 
                 // Torso
                 g = (Graphics2D) g_orig.create();
@@ -547,28 +529,10 @@ public class Player extends LivingComponent {
                 g.dispose();
 
                 // Front arm
-                g = (Graphics2D) g_orig.create();
-                g.setColor(color(1));
-                g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.FRONT_SHOULDER), shoulder.x(), shoulder.y()));
-                rectangle(g, shoulder.plus(-small, 0), med, 2 * med);
-                g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.FRONT_ELBOW), elbow.x(), elbow.y()));
-                rectangle(g, elbow.plus(-small, 0), med, med);
-                g.setColor(color(2));
-                circle(g, elbow, small);
-                circle(g, elbow.plus(0, med), small);
-                g.dispose();
-
+                arm(g_orig, pose.theta(Theta.FRONT_SHOULDER), pose.theta(Theta.FRONT_ELBOW));
+                
                 // Front leg
-                g = (Graphics2D) g_orig.create();
-                g.setColor(color(1));
-                g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.FRONT_HIP), midpoint.x(), midpoint.y()));
-                rectangle(g, midpoint.plus(-small, 2 * med), med, med + small);
-                g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.FRONT_KNEE), knee.x(), knee.y()));
-                rectangle(g, knee.plus(-small, 0), med, med);
-                g.setColor(color(2));
-                circle(g, knee, small);
-                circle(g, knee.plus(0, med), small);
-                g.dispose();
+                leg(g_orig, pose.theta(Theta.FRONT_HIP), pose.theta(Theta.FRONT_KNEE));
                 
         }
         
@@ -580,6 +544,43 @@ public class Player extends LivingComponent {
         g.drawString(pose.toString(), position().x() - 100, position().y() - 50);
         g.dispose();
         */
+    }
+    
+    private void arm(Graphics2D g_orig, double t_s, double t_e) {
+        Graphics2D g = (Graphics2D) g_orig.create();
+        g.setColor(color(1));
+        g.transform(AffineTransform.getRotateInstance(t_s, shoulder.x(), shoulder.y()));
+        rectangle(g, shoulder.plus(-small, 0), med, 2 * med);
+        g.transform(AffineTransform.getRotateInstance(t_e, elbow.x(), elbow.y()));
+        rectangle(g, elbow.plus(-small, 0), med, med);
+        g.setColor(color(2));
+        circle(g, elbow, small);
+        circle(g, elbow.plus(0, med), small);
+        g.setColor(color(1));
+        polygon(g, elbow.plus(0, small), small, -small, -small, -small, -small, small, small, small);
+        polygon(g, elbow.plus(0, med + small), small, -small, -small, -small, -small, small, small, small);
+        g.setColor(color(2));
+        circle(g, elbow, tiny);
+        circle(g, elbow.plus(0, med), tiny);
+        g.dispose();
+    }
+    private void leg(Graphics2D g_orig, double t_h, double t_k) {
+        Graphics2D g = (Graphics2D) g_orig.create();
+        g.setColor(color(1));
+        g.transform(AffineTransform.getRotateInstance(t_h, midpoint.x(), midpoint.y()));
+        rectangle(g, midpoint.plus(-small, 2 * med), med, med + small);
+        g.transform(AffineTransform.getRotateInstance(t_k, knee.x(), knee.y()));
+        rectangle(g, knee.plus(-small, 0), med, med);
+        g.setColor(color(2));
+        circle(g, knee, small);
+        circle(g, knee.plus(0, med), small);
+        g.setColor(color(1));
+        polygon(g, knee.plus(0, small), small, -small, -small, -small, -small, small, small, small);
+        polygon(g, knee.plus(0, med + small), small, -small, -small, -small, -small, small, small, small);
+        g.setColor(color(2));
+        circle(g, knee, tiny);
+        circle(g, knee.plus(0, med), tiny);
+        g.dispose();
     }
     
     private int numberOfJumps() {

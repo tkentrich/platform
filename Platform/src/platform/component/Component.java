@@ -138,6 +138,9 @@ public abstract class Component extends Observable {
         }
         return new Polygon(xpoints, ypoints, points);
     }
+    protected static void polygon(Graphics2D g, Dimension start, Dimension... delta) {
+        g.fillPolygon(polygon(start, delta));
+    }
     protected static void polygon(Graphics2D g, Dimension start, int... delta) {
         g.fillPolygon(polygon(start, delta));
     }

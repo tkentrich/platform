@@ -1,7 +1,10 @@
 package platform.component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
+import platform.component.Pose.Theta;
 
 /**
  *
@@ -66,7 +69,11 @@ public class PoseChain extends PoseChange {
 
     @Override
     public Set<Pose.Theta> keySet() {
-        return chain.get(chainIndex).keySet();
+        if (chain.size() > chainIndex && chainIndex >= 0) {
+            return chain.get(chainIndex).keySet();
+        }
+        HashMap<Theta, Double> empty = new HashMap();
+        return empty.keySet();
     }
 
     @Override
