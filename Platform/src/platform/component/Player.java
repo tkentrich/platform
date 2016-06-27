@@ -362,6 +362,7 @@ public class Player extends LivingComponent {
     
     public void ui(PlayerCommand comm) {
         switch (comm.event().getKeyCode()) {
+            // TODO: For each case, add in the check (if already pressed and comm.typed() then exit)
             case KeyEvent.VK_UP:
                 kb_up = comm.typed();
                 break;
