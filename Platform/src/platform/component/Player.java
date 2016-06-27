@@ -459,22 +459,26 @@ public class Player extends LivingComponent {
         }
     }
     
+    private Dimension middle, chestSize, neckSize;
+    private int big, med, small, tiny;
+    private Dimension neckStart, shoulder, elbow, knee;
+
     @Override
     public void display(Graphics2D g_start, Dimension start) {
-        Dimension middle = position().plus(size().dividedBy(2));
-        Dimension chestSize = size().dividedBy(3, 4);
-        Dimension neckSize = size().dividedBy(6, 8);
+        middle = position().plus(size().dividedBy(2));
+        chestSize = size().dividedBy(3, 4);
+        neckSize = size().dividedBy(6, 8);
         
-        int big = chestSize.x();
-        int med = big / 2;
-        int small = big / 4;
-        int tiny = big / 6;
+        big = chestSize.x();
+        med = big / 2;
+        small = big / 4;
+        tiny = big / 6;
         
         Dimension midpoint = new Dimension(0); //middle;//.plus(0, med);
-        Dimension neckStart = midpoint.plus(chestSize.plus(neckSize).times(0, -1));
-        Dimension shoulder = midpoint.minus(0, med);
-        Dimension elbow = shoulder.plus(0, med * 2);
-        Dimension knee = midpoint.plus(0, big + med + small);
+        neckStart = midpoint.plus(chestSize.plus(neckSize).times(0, -1));
+        shoulder = midpoint.minus(0, med);
+        elbow = shoulder.plus(0, med * 2);
+        knee = midpoint.plus(0, big + med + small);
         
         Graphics2D g_orig;
         g_orig = (Graphics2D) g_start.create();
@@ -519,26 +523,25 @@ public class Player extends LivingComponent {
                 // Torso
                 g = (Graphics2D) g_orig.create();
                 g.setColor(color(1));
-                g.fillPolygon(polygon(midpoint, chestSize, chestSize.times(-1, 1)));
-                g.fillPolygon(polygon(midpoint, chestSize.times(-1), chestSize.times(1, -1)));
+                polygon(g, midpoint, chestSize, chestSize.times(-1, 1));
+                polygon(g, midpoint, chestSize.times(-1), chestSize.times(1, -1));
 
                 // Neck
-                g.fillPolygon(polygon(neckStart, neckSize, neckSize.times(-1, 1)));
+                polygon(g, neckStart, neckSize, neckSize.times(-1, 1));
 
                 // Head
                 g.setColor(color(3));
                 g.transform(AffineTransform.getRotateInstance(pose.theta(Theta.NECK), neckStart.x(), neckStart.y()));
-                g.fillPolygon(polygon(neckStart.plus(-med, 0), big, 0, -big, tiny)); // mask
-                g.fillPolygon(polygon(neckStart.plus(-med, 0), 0, -big, small, 0)); // hood front
-                g.fillPolygon(polygon(neckStart.plus(med, 0), tiny, -big, -small, 0)); // hood back
-                g.fillPolygon(polygon(neckStart.plus(-big), big, -big, big, big)); // cap
+                polygon(g, neckStart.plus(-med, 0), big, 0, -big, tiny); // mask
+                polygon(g, neckStart.plus(-med, 0), 0, -big, small, 0); // hood front
+                polygon(g, neckStart.plus(med, 0), tiny, -big, -small, 0); // hood back
+                polygon(g, neckStart.plus(-big), big, -big, big, big); // cap
                 g.setColor(featherColor(1));
-                g.fillPolygon(polygon(neckStart.plus(big / 2, -big * 3 / 2), big, -med, 0, med)); // feather 1
+                polygon(g, neckStart.plus(big / 2, -big * 3 / 2), big, -med, 0, med); // feather 1
                 g.setColor(featherColor(2));
-                g.fillPolygon(polygon(neckStart.plus(big, -big), big, -med, 0, med)); // feather 2
+                polygon(g, neckStart.plus(big, -big), big, -med, 0, med); // feather 2
                 g.setColor(eyeColor());
-                g.fillPolygon(polygon(neckStart.plus(0, -med), small, -tiny, -small, 0));
-                // g.drawString(status.name() + " Jump: " + jumpTimeRemaining, neckStart.x() - big, neckStart.y() - big * 3);
+                polygon(g, neckStart.plus(0, -med), small, -tiny, -small, 0);
                 g.drawString(status.name() + " " + mainActionPose, neckStart.x() - big, neckStart.y() - big * 3);
                 g.dispose();
 
