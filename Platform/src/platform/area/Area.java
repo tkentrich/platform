@@ -208,7 +208,7 @@ public class Area extends Observable implements Observer {
             } else if (cr instanceof ScoreChange) {
                 game.increaseScore(((ScoreChange)cr).increase());
             } else {
-                System.out.println("Unknown CollectionResult!" + cr);
+                System.out.println("Unknown CollisionResult! " + cr);
             }
         }
         components.addAll(toAdd);

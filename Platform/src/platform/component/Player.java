@@ -362,18 +362,21 @@ public class Player extends LivingComponent {
     
     public void ui(PlayerCommand comm) {
         switch (comm.event().getKeyCode()) {
-            // TODO: For each case, add in the check (if already pressed and comm.typed() then exit)
             case KeyEvent.VK_UP:
+                if (kb_up && comm.typed()) {
+                    return;
+                }
                 kb_up = comm.typed();
                 break;
             case KeyEvent.VK_DOWN:
+                if (kb_down && comm.typed()) {
+                    return;
+                }
                 kb_down = comm.typed();
                 if (kb_down) {
                     switch (status) {
                         case WALK:
                         case SPRING:
-                            setStatus(PlayerStatus.CROUCH);
-                            break;
                         case STAND:
                             setStatus(PlayerStatus.CROUCH);
                             break;
@@ -390,6 +393,9 @@ public class Player extends LivingComponent {
                 }
                 break;
             case KeyEvent.VK_LEFT:
+                if (kb_left && comm.typed()) {
+                    return;
+                }
                 kb_left = comm.typed();
                 if (kb_left) {
                     kb_right = false;
@@ -400,6 +406,9 @@ public class Player extends LivingComponent {
                 }
                 break;
             case KeyEvent.VK_RIGHT:
+                if (kb_right && comm.typed()) {
+                    return;
+                }
                 kb_right = comm.typed();
                 if (kb_right) {
                     kb_left = false;
@@ -410,17 +419,30 @@ public class Player extends LivingComponent {
                 }
                 break;
             case KeyEvent.VK_SHIFT:
+                if (kb_run && comm.typed()) {
+                    return;
+                }
                 kb_run = comm.typed();
                 break;
             case KeyEvent.VK_CONTROL:
+                if (kb_fire && comm.typed()) {
+                    return;
+                }
                 kb_fire = comm.typed();
                 break;
             case KeyEvent.VK_SPACE:
+                if (kb_jump && comm.typed()) {
+                    return;
+                }
                 kb_jump = comm.typed();
                 break;
             case KeyEvent.VK_ALT:
+                if (/*    && */ comm.typed()) {
+                    return;
+                }
                 // ???
         }
+        // System.out.println(comm.event().getKeyCode() + (comm.typed() ? " Pressed" : " Released"));
     }
     
     public void control() {
