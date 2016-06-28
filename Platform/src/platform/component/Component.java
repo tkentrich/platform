@@ -102,6 +102,7 @@ public abstract class Component extends Observable {
         return getClass().getSimpleName() + id;
     }
     
+    public abstract boolean active();
     public abstract int maxFallSpeed();
     public abstract boolean visible();
     public abstract boolean passable();

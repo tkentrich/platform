@@ -23,6 +23,7 @@ import platform.component.shot.StandardShot;
  */
 public class Player extends LivingComponent {
 
+    public static final int START_HEALTH = 100;
     public enum PlayerStatus { STAND, WALK, JUMP, FALL, SPRING, CROUCH, SLIDE };
     public enum PlayerFacing { LEFT, RIGHT };
     public enum MainAction { NONE, WALK, RUN, JUMP, SLIDE };
@@ -207,7 +208,7 @@ public class Player extends LivingComponent {
     }
     
     public Player(Dimension position) {
-        super(position);
+        super(position, START_HEALTH);
         kb_left = kb_right = kb_up = kb_down = kb_jump = kb_fire = kb_run = false;
         setStatus(PlayerStatus.STAND);
         setAction(MainAction.NONE);
@@ -333,6 +334,7 @@ public class Player extends LivingComponent {
                 jumpTimeRemaining -= ms;
                 if (jumpTimeRemaining <= 0) {
                     setStatus(PlayerStatus.FALL);
+                    kb_jump = false;
                 }
                 break;
         }
@@ -349,9 +351,10 @@ public class Player extends LivingComponent {
         if (secondaryActionPose != null && !secondaryActionPose.active()) {
             switch (secondaryAction) {
                 case FIRE:
+                    kb_fire = false;
                     setAction(SecondaryAction.NONE);
                     setChanged();
-                    Dimension shPos = position().plus(size().dividedBy(2));
+                    Dimension shPos = position().plus(size().dividedBy(2).x(), size().y() / 4);
                     shPos.add(size().plus(StandardShot.shotSize()).dividedBy(2).x() * (facing == PlayerFacing.LEFT ? -1 : 1), 0);
                     notifyObservers(new StandardShot(shPos, speed().plus(StandardShot.fireSpeed * (facing == PlayerFacing.LEFT ? -1 : 1), 0)));
                     break;
