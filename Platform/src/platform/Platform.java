@@ -18,8 +18,8 @@ import platform.component.terrain.Dirt;
  * @author richkent
  */
 public class Platform implements Observer {
-    public static Dimension blockSize = new Dimension(48, 48);
-    public static Dimension spaceSize = new Dimension(192, 192);
+    public static final Dimension blockSize = new Dimension(48, 48);
+    public static final Dimension spaceSize = new Dimension(192, 192);
     public static final int GRAVITY = blockSize.y() * 20;
     
     private CanvasViewer v;

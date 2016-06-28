@@ -20,4 +20,8 @@ public abstract class Collectible extends Component {
     public ArrayList<CollisionResult> collide(Component c, Collision.CollisionType type) {
         return new ArrayList();
     }
+    @Override
+    public boolean active() {
+        return true;
+    }
 }

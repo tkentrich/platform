@@ -25,7 +25,7 @@ import platform.component.shot.Shot;
 public class Area extends Observable implements Observer {
     private Dimension size;
     private ArrayList<Component> components;
-    private ArrayList<Component> toAdd;
+    private ArrayList<Component> deltaComp;
     private HashMap<String, Space> space;
     private Player player;
     private boolean initialized;
@@ -35,7 +35,7 @@ public class Area extends Observable implements Observer {
         this.size = size;
         this.game = game;
         components = new ArrayList();
-        toAdd = new ArrayList();
+        deltaComp = new ArrayList();
         initialized = false;
     }
         
@@ -211,8 +211,14 @@ public class Area extends Observable implements Observer {
                 System.out.println("Unknown CollisionResult! " + cr);
             }
         }
-        components.addAll(toAdd);
-        toAdd.clear();
+        components.addAll(deltaComp);
+        deltaComp.clear();
+        for (Component c : components) {
+            if (!c.active()) {
+                deltaComp.add(c);
+            }
+        }
+        components.removeAll(deltaComp);
         setChanged();
         notifyObservers();
     }
@@ -222,7 +228,7 @@ public class Area extends Observable implements Observer {
         if (o instanceof Player) {
             Player p = (Player)o;
             if (arg != null && arg instanceof Shot) {
-                toAdd.add((Shot)arg);
+                deltaComp.add((Shot)arg);
             } else if (arg != null && arg instanceof ActionComplete) {
                 switch (((ActionComplete)arg).action()) {
                     case FIRE:

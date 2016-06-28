@@ -13,11 +13,15 @@ public class PlayerCommand {
     public PlayerCommand(KeyEvent event, boolean wasTyped) {
         ev = event;
         typed = wasTyped;
+        System.out.println(this);
     }
     public KeyEvent event() {
         return ev;
     }
     public boolean typed() {
         return typed;
+    }
+    public String toString() {
+        return String.format("%d (%s) %s", ev.getKeyCode(), ev.getKeyChar(), typed ? "Pressed" : "Released");
     }
 }

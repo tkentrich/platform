@@ -20,10 +20,12 @@ public class StandardShot extends Shot {
     
     private BufferedImage image;
     private int timeLeft;
+    private boolean active;
     
     public StandardShot(Dimension position, Dimension speed) {
         super(position, speed);
         timeLeft = 1000;
+        active = true;
     }
 
     @Override
@@ -55,8 +57,7 @@ public class StandardShot extends Shot {
         super.move(ms);
         timeLeft -= ms;
         if (timeLeft <= 0) {
-            speed().set(0, 0);
-            position().set(-9999, -9999);
+            active = false;
         }
     }
     
@@ -92,6 +93,11 @@ public class StandardShot extends Shot {
         ArrayList<CollisionResult> toReturn = new ArrayList();
         toReturn.add(new ShotDamage(c, 10));
         return toReturn;
+    }
+    
+    @Override
+    public boolean active() {
+        return active;
     }
     
 }
